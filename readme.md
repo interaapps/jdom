@@ -28,10 +28,6 @@ Get the newest stable version from github:
 ```javascript
 <script src="https://raw.githubusercontent.com/interaapps/jdom/master/jdom.js"></script>
 ```
-Get the newest from github:
-```javascript
-<script src="https://raw.githubusercontent.com/interaapps/jdom/stable/jdom.js"></script>
-```
 
 ## Examples
 
