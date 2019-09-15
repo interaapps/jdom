@@ -5,7 +5,10 @@
 
 
 class jdom {
-    constructor(element) {
+    constructor(element, parent=undefined) {
+        if (typeof parent=='undefined')
+            parent = document;
+
         this.usign = "queryselector";
         if (element instanceof HTMLElement || element===document  || element===window) {
             this.elem = element;
@@ -14,13 +17,16 @@ class jdom {
             this.elem = element.elem;
             this.usign = "jdom";
         } else
-            this.elem = document.querySelectorAll(element);
+            this.elem = parent.querySelectorAll(element);
+
         this.$ = function(element){
-            return (new jdom(element));
+            if (typeof this.elem[0] !== 'undefined')
+                    return (new jdom(element, this.elem[0]));
+            return (new jdom(element, this.elem));
         }
     }
 
-    foreacher(func) {
+    each(func) {
         if (this.usign == "htmlelement")
             func(this.elem);
         else
@@ -33,7 +39,7 @@ class jdom {
                 return this.elem[0].innerHTML;
             return "";
         } else {
-            this.foreacher( function (element) { element.innerHTML = html; });
+            this.each( function (element) { element.innerHTML = html; });
             return this;
         }
     }
@@ -44,7 +50,7 @@ class jdom {
                 return this.elem[0].innerText;
             return "";
         } else {
-            this.foreacher( function (element) { element.innerText = text; });
+            this.each( function (element) { element.innerText = text; });
             return this;
         }
     }
@@ -55,7 +61,7 @@ class jdom {
                 return this.elem[0].style[css];
             return "";
         } else
-            this.foreacher( function (element) {
+            this.each( function (element) {
                 if (typeof css == "string" && typeof alternativeValue != 'undefined') {
                     element.style[css] = alternativeValue;
                 } else {
@@ -72,7 +78,7 @@ class jdom {
             return this.elem[0][attributes];
             return "";
         } else
-            this.foreacher( function (element) {
+            this.each( function (element) {
                 if (typeof attributes == "string" && typeof alternativeValue != 'undefined') {
                     element[attributes] = alternativeValue;
                 } else {
@@ -85,14 +91,14 @@ class jdom {
 
     addClass(name) {
 
-        this.foreacher( function (element) {
+        this.each( function (element) {
             element.classList.add(name);
         });
         return this;
     }
 
     removeClass(name) {
-        this.foreacher( function (element) {
+        this.each( function (element) {
             element.classList.remove(name);
         });
         return this;
@@ -103,7 +109,7 @@ class jdom {
             if (typeof this.elem[0] !== 'undefined')
                 return this.elem[0].id;
         } else {
-            this.foreacher(function(element) {
+            this.each(function(element) {
                 element.id = name;
             });
         }
@@ -112,40 +118,66 @@ class jdom {
 
     append(append) {
         if (append instanceof HTMLElement)
-            this.foreacher( function (element) {
+            this.each( function (element) {
                 element.appendChild(append);
             });
         else if (append instanceof jdom)
-            this.foreacher( function (element) {
+            this.each( function (element) {
                 element.appendChild(append.elem);
             });
         else {
             var outerThis = this;
-            this.foreacher( function (element) {
+            this.each( function (element) {
                 outerThis.html(outerThis.html() + append);
             });
         }
         return this;
     }
 
-    each(runFunction) {
-        this.foreacher(runFunction);
-        return this;
-    }
 
     getElem(){
     	return this.elem;
     }
 
     on(what, func, option) {
-	    this.foreacher( function(element){
+	    this.each( function(element){
     	    element.addEventListener(what,func);
         }, option);
 	    return this;
      }
     
     click(func){ 
-        return this.on('click', func);
+        this.on('click', func);
+        return this;
+    }
+
+    ready(func) {
+        this.on('DOMContentLoaded', func);
+        return this;
+    }
+
+    hide() {
+        this.each( function(element){
+            element.style.display = "none";
+        });
+        return this;
+    }
+
+    show() {
+        this.each( function(element){
+            element.style.display = "";
+        });
+        return this;
+    }
+
+    toggle() {
+        this.each( function(element){
+            if (element.style.display == "none")
+                element.style.display = "";
+            else
+                element.style.display = "none";
+        });
+        return this;
     }
     
     
@@ -154,6 +186,10 @@ class jdom {
 
 
 var $ = function(element){
+    return (new jdom(element));
+}
+
+var $jdom = function(element){
     return (new jdom(element));
 }
 

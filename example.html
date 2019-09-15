@@ -9,18 +9,29 @@
     <title>Document</title>
 </head>
 <body>
-    <a class="a">a</a>
+<a class="a">SOOS</a>
+<div id="imIn">
+    <a>ROFL</a>
+</div>
 </body>
 </html>
 
 <script>
+$(document).ready(function() {
+    console.log("Hi");
+    $("a").click(function () {
+        console.log($(this));
+    });
 
-$("a").click(function(){
-	console.log($(this));
+    var myNewElement = $n("div");
+    myNewElement.html("<p>Hello world!</p>");
+    $("body").append(myNewElement);
+
 });
 
-var myNewElement = $n("div");
-myNewElement.html("<p>Hello world!</p>");
-$("body").append(myNewElement);
-
 </script>
+<style>
+    a {
+        display: inline-block;
+    }
+</style>

@@ -1,4 +1,4 @@
-# JDOM
+<h1 align="center">JDOM</h1>
 This project isn't finished! You can fork this, edit this and send a merge Request!
 
 ## Examples
@@ -27,6 +27,13 @@ $("#myElement").click(function() {
 #### Foreach
 ```javascript
 $(".myElements").each(function(element) {
+    $(element).text("Hi");
+});
+```
+
+#### Child selector
+```javascript
+$("#myElement").$("#childElement").each(function(element) {
     $(element).text("Hi");
 });
 ```
