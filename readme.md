@@ -3,6 +3,33 @@ This project isn't finished! You can fork this, edit this and send a merge Reque
 
 ## Examples
 
+#### CSS
+```javascript
+$("#myElement").css({
+    background: "#000000",
+    color: "#FFFFFF",
+    marginRight: "10px"
+});
+```
+
+#### Events
+```javascript
+$("#myElement").on(function() {
+    console.log("Hello world!");
+});
+
+//Or (Works just for some)
+$("#myElement").click(function() {
+    console.log("Hello world!");
+});
+```
+
+#### Foreach
+```javascript
+$(".myElements").each(function(element) {
+    $(element).text("Hi");
+});
+```
 
 #### Builder pattern
 ```javascript

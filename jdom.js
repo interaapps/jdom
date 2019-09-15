@@ -49,20 +49,37 @@ class jdom {
         }
     }
 
-    css(css={}) {
-        this.foreacher( function (element) {
-            for (var styleAttr in css)
-                element.style[styleAttr] = css[styleAttr];
-        });
+    css(css={}, alternativeValue=undefined) {
+        if (typeof css == "string" && typeof alternativeValue == 'undefined') {
+            if (typeof this.elem[0].style[css] !== 'undefined')
+                return this.elem[0].style[css];
+            return "";
+        } else
+            this.foreacher( function (element) {
+                if (typeof css == "string" && typeof alternativeValue != 'undefined') {
+                    element.style[css] = alternativeValue;
+                } else {
+                    for (var styleAttr in css)
+                        element.style[styleAttr] = css[styleAttr];
+                }
+            });
         return this;
     }
 
-    attr(attributes={}) {
-
-        this.foreacher( function (element) {
-            for (var attribute in attributes)
-                element[attribute] = attributes[attribute];
-        });
+    attr(attributes={}, alternativeValue=undefined) {
+        if (typeof attributes == "string" && typeof alternativeValue == 'undefined') {
+            if (typeof this.elem[0][attributes] !== 'undefined')
+            return this.elem[0][attributes];
+            return "";
+        } else
+            this.foreacher( function (element) {
+                if (typeof attributes == "string" && typeof alternativeValue != 'undefined') {
+                    element[attributes] = alternativeValue;
+                } else {
+                    for (var attribute in attributes)
+                        element[attribute] = attributes[attribute];
+                }
+            });
         return this;
     }
 
