@@ -24,7 +24,7 @@ The best way to use it is to download it and adding it to your page.
 
 ### Try JDom
 You want to try JDom for testing purposes?
-Get the newest stable version from github:
+Get the newest version from github:
 ```javascript
 <script src="https://raw.githubusercontent.com/interaapps/jdom/master/jdom.js"></script>
 ```
