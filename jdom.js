@@ -74,23 +74,21 @@ class jdom {
 
     attr(attributes={}, alternativeValue=undefined) {
         if (typeof attributes == "string" && typeof alternativeValue == 'undefined') {
-            if (typeof this.elem[0][attributes] !== 'undefined')
-            return this.elem[0][attributes];
-            return "";
+            if (typeof this.elem[0] !== 'undefined')
+                return this.elem[0].getAttribute(attributes);
         } else
             this.each( function (element) {
                 if (typeof attributes == "string" && typeof alternativeValue != 'undefined') {
-                    element[attributes] = alternativeValue;
+                    element.setAttribute(attributes, alternativeValue);
                 } else {
                     for (var attribute in attributes)
-                        element[attribute] = attributes[attribute];
+                        element.setAttribute(attribute, attributes[attribute]);
                 }
             });
         return this;
     }
 
     addClass(name) {
-
         this.each( function (element) {
             element.classList.add(name);
         });
