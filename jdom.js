@@ -6,24 +6,34 @@
 
 class jdom {
     constructor(element) {
-        if (element instanceof HTMLElement)
+        this.usign = "queryselector";
+        if (element instanceof HTMLElement || element===document  || element===window) {
             this.elem = element;
-        else if (element instanceof jdom)
+            this.usign = "htmlelement";
+        } else if (element instanceof jdom) {
             this.elem = element.elem;
-        else
+            this.usign = "jdom";
+        } else
             this.elem = document.querySelectorAll(element);
         this.$ = function(element){
             return (new jdom(element));
         }
     }
-    
+
+    foreacher(func) {
+        if (this.usign == "htmlelement")
+            func(this.elem);
+        else
+            [].forEach.call(this.elem, func);
+    }
+
     html(html) {
     	if (typeof html == 'undefined') {
     	    if (typeof this.elem[0] !== 'undefined')
                 return this.elem[0].innerHTML;
             return "";
         } else {
-            [].forEach.call(this.elem, function (element) { element.innerHTML = html; });
+            this.foreacher( function (element) { element.innerHTML = html; });
             return this;
         }
     }
@@ -34,13 +44,13 @@ class jdom {
                 return this.elem[0].innerText;
             return "";
         } else {
-            [].forEach.call(this.elem, function (element) { element.innerText = text; });
+            this.foreacher( function (element) { element.innerText = text; });
             return this;
         }
     }
 
     css(css={}) {
-        [].forEach.call(this.elem, function (element) {
+        this.foreacher( function (element) {
             for (var styleAttr in css)
                 element.style[styleAttr] = css[styleAttr];
         });
@@ -48,28 +58,72 @@ class jdom {
     }
 
     attr(attributes={}) {
-        [].forEach.call(this.elem, function (element) {
+
+        this.foreacher( function (element) {
             for (var attribute in attributes)
                 element[attribute] = attributes[attribute];
         });
         return this;
     }
-    
-    each(runFunction) {
-        [].forEach.call(this.elem, function(element){
-    	    runFunction(element);
+
+    addClass(name) {
+
+        this.foreacher( function (element) {
+            element.classList.add(name);
         });
         return this;
     }
-    
+
+    removeClass(name) {
+        this.foreacher( function (element) {
+            element.classList.remove(name);
+        });
+        return this;
+    }
+
+    id(name) {
+        if (typeof name == 'undefined') {
+            if (typeof this.elem[0] !== 'undefined')
+                return this.elem[0].id;
+        } else {
+            this.foreacher(function(element) {
+                element.id = name;
+            });
+        }
+        return this;
+    }
+
+    append(append) {
+        if (append instanceof HTMLElement)
+            this.foreacher( function (element) {
+                element.appendChild(append);
+            });
+        else if (append instanceof jdom)
+            this.foreacher( function (element) {
+                element.appendChild(append.elem);
+            });
+        else {
+            var outerThis = this;
+            this.foreacher( function (element) {
+                outerThis.html(outerThis.html() + append);
+            });
+        }
+        return this;
+    }
+
+    each(runFunction) {
+        this.foreacher(runFunction);
+        return this;
+    }
+
     getElem(){
     	return this.elem;
     }
-    
-    on(what, func) {
-	    [].forEach.call(this.elem, function(element){
+
+    on(what, func, option) {
+	    this.foreacher( function(element){
     	    element.addEventListener(what,func);
-        });
+        }, option);
 	    return this;
      }
     
@@ -84,6 +138,10 @@ class jdom {
 
 var $ = function(element){
     return (new jdom(element));
+}
+
+var $n = function(element="div"){
+    return (new jdom(document.createElement(element)));
 }
 
 var $$ = function (element) {
