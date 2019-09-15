@@ -74,23 +74,28 @@ class jdom {
 
     attr(attributes={}, alternativeValue=undefined) {
         if (typeof attributes == "string" && typeof alternativeValue == 'undefined') {
-            if (typeof this.elem[0][attributes] !== 'undefined')
-            return this.elem[0][attributes];
-            return "";
+            if (typeof this.elem[0] !== 'undefined')
+                return this.elem[0].getAttribute(attributes);
         } else
             this.each( function (element) {
                 if (typeof attributes == "string" && typeof alternativeValue != 'undefined') {
-                    element[attributes] = alternativeValue;
+                    element.setAttribute(attributes, alternativeValue);
                 } else {
                     for (var attribute in attributes)
-                        element[attribute] = attributes[attribute];
+                        element.setAttribute(attribute, attributes[attribute]);
                 }
             });
         return this;
     }
 
-    addClass(name) {
+    removeAttr(name) {
+        this.each(function(element) {
+            element.removeAttribute(name);
+        });
+        return this;
+    }
 
+    addClass(name) {
         this.each( function (element) {
             element.classList.add(name);
         });
@@ -144,7 +149,21 @@ class jdom {
     	    element.addEventListener(what,func);
         }, option);
 	    return this;
-     }
+    }
+
+    rmEvent(what, func) {
+        this.each(function(element) {
+            element.removeEventListener(what, func);
+        });
+    }
+
+    bind(binds={}) {
+	    this.each( function(element){
+            for (var bind in binds)
+    	        element.addEventListener(bind, binds[bind]);
+        });
+	    return this;
+    }
     
     click(func){ 
         this.on('click', func);
