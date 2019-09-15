@@ -88,6 +88,13 @@ class jdom {
         return this;
     }
 
+    removeAttr(name) {
+        this.each(function(element) {
+            element.removeAttribute(name);
+        });
+        return this;
+    }
+
     addClass(name) {
         this.each( function (element) {
             element.classList.add(name);
