@@ -130,7 +130,16 @@ $("a").bind({
 });
 ```
 
-#### More
+#### Removing Events
+```javascript
+onClickEvent = function(event) {
+    console.log("hello!");
+    $("a").rmEvent("click", onClickEvent);
+}
+$("a").on("click", onClickEvent);
+```
+
+### More
 
 #### Cajax example (Ajax)
 [You need Cajax.js for this example. (Click here)](https://github.com/interaapps/cajax)

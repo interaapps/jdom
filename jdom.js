@@ -146,6 +146,12 @@ class jdom {
 	    return this;
     }
 
+    rmEvent(what, func) {
+        this.each(function(element) {
+            element.removeEventListener(what, func);
+        });
+    }
+
     bind(binds={}) {
 	    this.each( function(element){
             for (var bind in binds)
