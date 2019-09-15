@@ -144,7 +144,15 @@ class jdom {
     	    element.addEventListener(what,func);
         }, option);
 	    return this;
-     }
+    }
+
+    bind(binds={}) {
+	    this.each( function(element){
+            for (var bind in binds)
+    	        element.addEventListener(bind, binds[bind]);
+        });
+	    return this;
+    }
     
     click(func){ 
         this.on('click', func);

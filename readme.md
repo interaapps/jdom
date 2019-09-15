@@ -13,6 +13,7 @@ This project isn't finished yet! You can contribute to project this :)
 - [Examples](#Examples)
   - [Start](#Start)
   - [Animations](#Animations)
+  - [Events](#Events)
 ## Using JDom
 You want to use JDom?
 The best way to use it is to download it and adding it to your page.
@@ -107,18 +108,33 @@ $("#myElement").animator([{
 }]);
 ```
 
-#### Events
+### Events
+#### On
 ```javascript
-$("#myElement").on(function() {
+$("#myElement").on("click", function() {
     console.log("Hello world!");
 });
-
-//Or (Works just for some)
+```
+#### Built in
+```javascript
+// (Works just for some)
 $("#myElement").click(function() {
     console.log("Hello world!");
 });
 ```
+#### Binds
+```javascript
+$("a").bind({
+    click: function() {
+        alert("Left Clicked!");
+    },
+    contextmenu: function() {
+        alert("Right Clicked!");
+    }
+});
+```
 
+#### More
 
 #### Cajax example (Ajax)
 [You need Cajax.js for this example. (Click here)](https://github.com/interaapps/cajax)
