@@ -178,8 +178,35 @@ class jdom {
                 element.style.display = "none";
         });
         return this;
+
     }
-    
+
+    animate(css={}, duration=1000, then=function(){}) {
+        this.css("transition", duration+"ms");
+        this.css(css);
+        setTimeout(function() {
+            then();
+        }, duration);
+        return this;
+    }
+
+    animator(animations=[], async = false){
+        var counting = 0;
+        var outerThis = this;
+        for (var animation in animations) {
+            const css = typeof animations[animation].css != 'undefined' ? animations[animation].css : {};
+            const then = typeof animations[animation].then != 'undefined' ? animations[animation].then : function () {};
+            const duration = typeof animations[animation].duration != 'undefined' ? animations[animation].duration : 1000;
+            setTimeout(function(){
+                outerThis.animate(css, duration, then);
+            }, counting);
+            console.log("lol:"+animation);
+            console.log("counts: "+counting);
+            if (!async)
+                counting += duration;
+        }
+        return this;
+    }
     
 }
 
