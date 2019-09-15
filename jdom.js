@@ -200,8 +200,6 @@ class jdom {
             setTimeout(function(){
                 outerThis.animate(css, duration, then);
             }, counting);
-            console.log("lol:"+animation);
-            console.log("counts: "+counting);
             if (!async)
                 counting += duration;
         }
