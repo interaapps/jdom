@@ -1,5 +1,5 @@
 <h1 align="center">JDOM</h1>
-This project isn't finished! You can fork this, edit this and send a merge Request!
+This project isn't finished yet! You can contribute to project this :)!
 
 ## Examples
 
@@ -53,4 +53,14 @@ $("#myElement").text("Welcome!").attr({
 var myNewElement = $n("div").html("<p>New Element</p>").addClass("myClass");
 // Appending to the Html Body
 $("body").append(myNewElement);
+```
+
+#### Cajax example (Ajax)
+[You need Cajax.js for this example. (Click here)](https://github.com/interaapps/cajax)
+```javascript
+Cajax.get("/api/getWeather", {
+    zipcode: 97201
+}).then(function(resp) {
+    $("#weather-temp").html("<strong>" + resp.responseText + "</strong> degrees");
+}).send();
 ```
