@@ -121,6 +121,18 @@ class jdom {
         return this;
     }
 
+    val(value) {
+        if (typeof value == 'undefined') {
+            if (typeof this.elem[0] !== 'undefined')
+                return this.elem[0].value;
+        } else {
+            this.each(function(element) {
+                element.value = value;
+            });
+        }
+        return this;
+    }
+
     append(append) {
         if (append instanceof HTMLElement)
             this.each( function (element) {
