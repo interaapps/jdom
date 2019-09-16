@@ -236,10 +236,21 @@ class jdom {
         }
         return this;
     }
+
+    static noConflict() {
+        var $ = _$beforeJdom;
+        var $n = _$nBeforeJdom;
+        var $$ = _$$beforeJdom;
+    }
     
 }
 
-
+if (typeof $ != 'undefined')
+var _$beforeJdom  = $;
+if (typeof $n != 'undefined')
+    var _$nBeforeJdom = $n;
+if (typeof $$ != 'undefined')
+    var _$$beforeJdom = $$;
 
 var $ = function(element){
     return (new jdom(element));

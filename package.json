@@ -1,0 +1,23 @@
+{
+  "name": "jdomjs",
+  "version": "1.0.01",
+  "description": "JDOM is a JQuery like DOM selector! ",
+  "main": "jdom.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/interaapps/jdom.git"
+  },
+  "keywords": [
+    "JDom",
+    "Dom selector"
+  ],
+  "author": "InteraApps",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/interaapps/jdom/issues"
+  },
+  "homepage": "https://github.com/interaapps/jdom#readme"
+}

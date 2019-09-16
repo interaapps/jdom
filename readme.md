@@ -22,6 +22,11 @@ The best way to use it is to download it and adding it to your page.
 <script src="/assets/js/jdom.js"></script>
 ```
 
+### NPM
+```bash
+npm install jdomjs
+```
+
 ### Try JDom
 You want to try JDom for testing purposes?
 Get the newest version from github:
