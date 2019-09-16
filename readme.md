@@ -18,7 +18,7 @@ This project isn't finished yet! You can contribute to project this :)
 You want to use JDom?
 The best way to use it is to download it and adding it to your page.
 
-```javascript
+```html
 <script src="/assets/js/jdom.js"></script>
 ```
 
@@ -30,7 +30,7 @@ npm install jdomjs
 ### Try JDom
 You want to try JDom for testing purposes?
 Get the newest version from github:
-```javascript
+```html
 <script src="https://raw.githubusercontent.com/interaapps/jdom/master/jdom.js"></script>
 ```
 
