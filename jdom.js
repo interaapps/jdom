@@ -33,10 +33,19 @@ class jdom {
             [].forEach.call(this.elem, func);
     }
 
+    getFitstElement() {
+        if (this.usign == "htmlelement")
+            return this.elem;
+        else if (typeof this.elem[0] != 'undefined')
+            return this.elem[0];
+        return undefined;
+    }
+
     html(html) {
     	if (typeof html == 'undefined') {
-    	    if (typeof this.elem[0] !== 'undefined')
-                return this.elem[0].innerHTML;
+            var element = this.getFitstElement();
+    	    if (typeof element !== 'undefined')
+                return element.innerHTML;
             return "";
         } else {
             this.each( function (element) { element.innerHTML = html; });
@@ -46,8 +55,9 @@ class jdom {
 
     text(text) {
         if (typeof text == 'undefined') {
-            if (typeof this.elem[0] !== 'undefined')
-                return this.elem[0].innerText;
+            var element = this.getFitstElement();
+            if (typeof element !== 'undefined')
+                return element.innerText;
             return "";
         } else {
             this.each( function (element) { element.innerText = text; });
@@ -57,8 +67,9 @@ class jdom {
 
     css(css={}, alternativeValue=undefined) {
         if (typeof css == "string" && typeof alternativeValue == 'undefined') {
-            if (typeof this.elem[0].style[css] !== 'undefined')
-                return this.elem[0].style[css];
+            var element = this.getFitstElement();
+            if (typeof element.style[css] !== 'undefined')
+                return element.style[css];
             return "";
         } else
             this.each( function (element) {
@@ -74,8 +85,10 @@ class jdom {
 
     attr(attributes={}, alternativeValue=undefined) {
         if (typeof attributes == "string" && typeof alternativeValue == 'undefined') {
-            if (typeof this.elem[0] !== 'undefined')
-                return this.elem[0].getAttribute(attributes);
+            var element = this.getFitstElement();
+
+            if (typeof element !== 'undefined')
+                return element.getAttribute(attributes);
         } else
             this.each( function (element) {
                 if (typeof attributes == "string" && typeof alternativeValue != 'undefined') {
@@ -111,8 +124,9 @@ class jdom {
 
     id(name) {
         if (typeof name == 'undefined') {
-            if (typeof this.elem[0] !== 'undefined')
-                return this.elem[0].id;
+            var element = this.getFitstElement();
+            if (typeof element !== 'undefined')
+                return element.id;
         } else {
             this.each(function(element) {
                 element.id = name;
@@ -123,8 +137,9 @@ class jdom {
 
     val(value) {
         if (typeof value == 'undefined') {
-            if (typeof this.elem[0] !== 'undefined')
-                return this.elem[0].value;
+            var element = this.getFitstElement();
+            if (typeof element !== 'undefined')
+                return element.value;
         } else {
             this.each(function(element) {
                 element.value = value;
@@ -267,3 +282,4 @@ var $n = function(element="div"){
 var $$ = function (element) {
     return document.querySelectorAll(element);
 }
+
