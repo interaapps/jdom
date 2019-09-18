@@ -1,6 +1,6 @@
 {
   "name": "jdomjs",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "JDOM is a JQuery like DOM selector! ",
   "main": "jdom.js",
   "scripts": {
