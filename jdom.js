@@ -306,6 +306,37 @@ if (typeof $n != 'undefined')
 if (typeof $$ != 'undefined')
     var _$$beforeJdom = $$;
 
+$jdomfn = function(name, func){
+	jdom.prototype[name] = func;
+}
+
+$jdomGetter = function(varName){
+	varNameArray = varName.split("");
+	if (varNameArray[0] !== undefined)
+		varNameArray[0] = varName[0].toUpperCase();
+	var out = "";
+	for (letter in varNameArray)
+		out += varNameArray[letter];
+	jdom.prototype["get"+out] = function(){
+		return this.getFirstElement()[varName];
+	}
+}
+
+$jdomSetter = function(varName){
+	varNameArray = varName.split("");
+	if (varNameArray[0] !== undefined)
+		varNameArray[0] = varName[0].toUpperCase();
+	var out = "";
+	for (letter in varNameArray)
+		out += varNameArray[letter];
+	jdom.prototype["set"+out] = function(value){
+		this.each(function(elem){
+			elem[varName] = value;
+		});
+		return this;
+	}
+}
+
 var $ = function(element){
     return (new jdom(element));
 }
@@ -321,6 +352,9 @@ var $n = function(element="div"){
 var $$ = function (element) {
     return document.querySelectorAll(element);
 }
+
+
 if ( typeof module === "object" && typeof module.exports === "object" ) {
     module.exports = $;
 }
+

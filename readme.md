@@ -144,6 +144,38 @@ onClickEvent = function(event) {
 $("a").on("click", onClickEvent);
 ```
 
+### Simple Plugins System
+
+```javascript
+//        |- Function Name
+//        \/
+$jdomfn("test", function(){ 
+	// Now you can access every function from JDOM with this!
+	this.each(function(elem){
+		elem.innerHTML = "Nice";
+	});
+	
+	this.on("click", function(){
+		console.log("Hi");
+	});
+});
+
+$(".element").test(); 
+```
+ 
+
+### JDom getter and setter
+This is made to implement getter and setter from DOM elements that do not exist in Jdom already.
+
+```javascript
+$jdomGetter("innerHTML");
+// creates the method getInnerHTML() [Usage: $(".element").getInnerHTML() ]
+
+$jdomSetter("innerHTML");
+// creates the method setInnerHTML() [Usage: $(".element").setInnerHTML("Hello") ]
+
+```
+
 ### More
 
 #### Cajax example (Ajax)
@@ -155,3 +187,8 @@ Cajax.get("/api/getWeather", {
     $("#weather-temp").html("<strong>" + resp.responseText + "</strong> degrees");
 }).send();
 ```
+
+
+   = -=- - = - -=- - = - -=- - =
+Open Source project by interaapps.de
+   = -=- - = - -=- - = - -=- - =
