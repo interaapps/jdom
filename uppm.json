@@ -1,0 +1,11 @@
+{
+    "name": "jdom",
+    "version": "1.4",
+    "description": "Javascript DOM-Selector",
+    "author": "InteraApps",
+    "keywords": [
+        ""
+    ],
+    "modules": {},
+    "namespaces": {}
+}
