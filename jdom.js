@@ -166,6 +166,24 @@ class jdom {
         }
         return this;
     }
+    
+    prepend(prepend) {
+        if (prepend instanceof HTMLElement)
+            this.each( function (element) {
+                element.prepend(prepend);
+            });
+        else if (prepend instanceof jdom)
+            this.each( function (element) {
+                element.prepend(prepend.elem);
+            });
+        else {
+            var outerThis = this;
+            this.each( function (element) {
+                outerThis.html(prepend+outerThis.html());
+            });
+        }
+        return this;
+    }
 
 
     getElem(){
