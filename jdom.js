@@ -314,6 +314,10 @@ class jdom {
         var $n = _$nBeforeJdom;
         var $$ = _$$beforeJdom;
     }
+
+    static new(element="div"){
+        return (new jdom(document.createElement(element)));
+    }
     
 }
 
@@ -373,6 +377,5 @@ var $$ = function (element) {
 
 
 if ( typeof module === "object" && typeof module.exports === "object" ) {
-    module.exports = $;
+    module.exports = {$, $jdom, $n, $$, jdom, $jdomGetter, $jdomSetter, $jdomfn};
 }
-
