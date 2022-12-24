@@ -1,4 +1,4 @@
-<script src="jdom.js"></script>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,26 +9,48 @@
     <title>Document</title>
 </head>
 <body>
-<a class="a">SOOS</a>
-<div id="imIn">
-    <a>ROFL</a>
+<div id="app">
 </div>
 </body>
 </html>
 
-<script>
-$(document).ready(function() {
-    console.log("Hi");
-    $("a").click(function () {
-        console.log($(this));
-    });
+<script type="module">
+    import {$, $n, JDOM} from './index.js'
 
-    var myNewElement = $n("div");
-    myNewElement.html("<p>Hello world!</p>");
-    $("body").append(myNewElement);
+    const app = $('#app')
 
-});
+    console.log(app)
 
+    app.append(
+        $n('button')
+            .text('Hey')
+            .click(e => {
+                alert("Moin")
+            })
+    ).append(`<h1>Hey</h1>`)
+
+    app.animate({background: '#FF0022'}, 1000)
+
+    app.animator([
+        {
+            css: {
+                background: '#FF0022'
+            },
+            duration: 1000
+        },
+        {
+            css: {
+                background: '#22FF22'
+            },
+            duration: 1000
+        },
+        {
+            css: {
+                background: '#FFFF22'
+            },
+            duration: 1000
+        },
+    ])
 </script>
 <style>
     a {
