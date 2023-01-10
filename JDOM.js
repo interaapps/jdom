@@ -314,6 +314,10 @@ class JDOM {
     online(func) { return this.on('online', func); }
     focus(func) { return this.on('focus', func); }
 
+    remove() {
+        return this.each(el => el.remove())
+    }
+
     ready(func) {
         this.on('DOMContentLoaded', func);
         return this;
