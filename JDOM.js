@@ -1,9 +1,3 @@
-/*
-    JDOM IS A SIMPLE DOM SELECTOR WITH FUNCTIONS!
-    This is not finished! If you want to add something, just do it!
-*/
-
-
 class JDOM {
     constructor(element, parent = undefined) {
         if (typeof parent === 'undefined')
