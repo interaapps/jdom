@@ -1,4 +1,4 @@
-# JDOM `2.0.0`
+# JDOM `2.0.1`
 # A wrapper for query selector and html elements
 
 ## Install
@@ -9,12 +9,12 @@ npm install jdomjs
 
 ### Module
 ```js
-import { $, $n, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@2.0.0/index.js'
+import { $, $n, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@2.0.1/index.js'
 ```
 
 ### HTML import
 ```js
-<script src="https://cdn.jsdelivr.net/npm/jdom@2.0.0/dist/cajax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jdom@2.0.1/dist/cajax.js"></script>
 ```
 
 ## Usage

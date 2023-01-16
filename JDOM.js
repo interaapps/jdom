@@ -5,7 +5,10 @@
 
 
 class JDOM {
-    constructor(element, parent=undefined) {
+    constructor(element, parent = undefined) {
+        if (typeof parent === 'undefined')
+            parent = document;
+
         this.elem = []
 
         if (element instanceof NodeList) {
@@ -15,11 +18,13 @@ class JDOM {
         } else if (element instanceof JDOM) {
             this.elem = element.elem
         } else {
-            this.elem = document.querySelectorAll(element);
+            this.elem = parent.querySelectorAll(element);
         }
 
         this.$ = selector => {
-            return null
+            if (typeof this.elem[0] !== 'undefined')
+                return (new JDOM(selector, this.elem[0]));
+            return null;
         }
     }
 

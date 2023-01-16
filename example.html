@@ -9,7 +9,9 @@
     <title>Document</title>
 </head>
 <body>
+    <h1 id="ney"></h1>
 <div id="app">
+    <h1 id="hay"></h1>
 </div>
 </body>
 </html>
@@ -19,7 +21,8 @@
 
     const app = $('#app')
 
-    console.log(app)
+    console.log($('h1'))
+    console.log(app.$('h1'))
 
     app.append(
         $n('button')
