@@ -281,6 +281,18 @@ class JDOM {
         return this.on('click', callable)
     }
 
+    get(index) {
+        return this.elem[index]
+    }
+
+    size() {
+        return this.elem.length
+    }
+
+    toArray() {
+        return [...this.elem]
+    }
+
     contextmenu(func) { return this.on('contextmenu', func); }
     change(func) { return this.on('change', func); }
     mouseover(func) { return this.on('mouseover', func); }
