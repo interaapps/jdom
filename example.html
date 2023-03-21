@@ -9,20 +9,19 @@
     <title>Document</title>
 </head>
 <body>
-    <h1 id="ney"></h1>
-<div id="app">
-    <h1 id="hay"></h1>
-</div>
+    <!-- <h1 id="ney"></h1>
+    <div id="app">
+        <h1 id="hay"></h1>
+    </div> -->
+    <my-element my-attr="Hey" class="btn-primary"></my-element>
 </body>
 </html>
 
 <script type="module">
-    import {$, $n, JDOM} from './index.js'
+    import {$, $n, $c, $r, $h, JDOM} from './index.js'
 
     const app = $('#app')
 
-    console.log($('h1'))
-    console.log(app.$('h1'))
 
     app.append(
         $n('button')
@@ -54,6 +53,14 @@
             duration: 1000
         },
     ])
+
+
+    $r('my-element', $c(c => {
+        return c.append(c.attr('my-attr'))
+    }))
+
+
+
 </script>
 <style>
     a {

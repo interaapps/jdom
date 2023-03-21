@@ -1,4 +1,4 @@
-# JDOM `2.0.1`
+# JDOM `2.0.2`
 # A wrapper for query selector and html elements
 
 ## Install
@@ -9,12 +9,12 @@ npm install jdomjs
 
 ### Module
 ```js
-import { $, $n, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@2.0.1/index.js'
+import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@2.0.2/index.js'
 ```
 
 ### HTML import
 ```js
-<script src="https://cdn.jsdelivr.net/npm/jdom@2.0.1/dist/cajax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jdom@2.0.2/dist/cajax.js"></script>
 ```
 
 ## Usage
@@ -32,6 +32,14 @@ el.each(el => {
 el.text('Hello world')
 
 el.html('<span>Hello</span> world')
+
+el.attr('key', value)
+
+el.classes('hello', 'world')
+
+if (el.hasClass('hello')) {}
+
+
 
 el.click(e => {
     console.log(e)
@@ -60,4 +68,30 @@ $('#test').animator([
         }
     }
 ])
+```
+
+### Create Element
+```js
+$('#app').append(
+    // Creates a new div with 'Hey' text
+    $n('div').text('Hey')
+)
+```
+
+### Web-Components
+```html
+<my-component></my-component>
+
+<script>
+// Create HTMLElement
+const MyComponent = $c(c => {
+    c.text('Hello World')
+    c.click(() => {
+        alert('Hey')
+    })
+})
+
+// Register component
+$r('my-component', MyComponent)
+</script>
 ```

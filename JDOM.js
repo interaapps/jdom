@@ -81,7 +81,19 @@ class JDOM {
 
     getAttr(name) {
         const el = this.first()
-        return el ? el.innerHTML : null
+        return el ? el.getAttribute(name) : null
+    }
+
+    getAttributes() {
+        const el = this.first()
+        const attribs = {}
+        if (el) {
+            const elAttributes = el.attributes
+            for (const { nodeName, nodeValue } of elAttributes){
+                attribs[nodeName] = nodeValue
+            }
+        }
+        return attribs
     }
 
     setAttr(name, val) {
@@ -106,15 +118,38 @@ class JDOM {
         return this;
     }
 
+    attrs() {
+        return this.getAttributes()
+    }
+
     hasClass(name) {
         const el = this.first()
         return el ? el.classList.contains(name) : false
     }
 
-    addClass(name) {
+    addClass(...names) {
         return this.each(el => {
-            el.classList.add(name)
+            for (let name of names) {
+                el.classList.add(name)
+            }
         })
+    }
+
+    addClasses(...names) {
+        return this.addClass(...names)
+    }
+
+    getClasses() {
+        const el = this.first()
+        return el ? [...el.classList] : []
+    }
+
+    classes(...names) {
+        if (names.length === 0) {
+            return this.getClasses()
+        }
+        return this.addClasses(...names)
+
     }
 
     removeClass(name) {
@@ -336,6 +371,30 @@ class JDOM {
 
     static new(tag = 'div') {
         return new JDOM(document.createElement(tag))
+    }
+
+    static component(component, {shadowed = false} = {}) {
+        return class extends HTMLElement {
+            constructor() {
+                super()
+
+                let el = this
+                if (shadowed) {
+                    el = this.attachShadow({mode: 'closed'});
+                }
+
+                const $el = new JDOM(el)
+                component($el, $el)
+            }
+        }
+    }
+
+    static registerComponent(tag, component) {
+        return window.customElements.define(tag, component)
+    }
+
+    static fromHTML(html) {
+        return JDOM.new('template').html(html || '')
     }
 }
 
