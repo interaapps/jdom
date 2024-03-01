@@ -9,11 +9,11 @@
     <title>Document</title>
 </head>
 <body>
-    <!-- <h1 id="ney"></h1>
     <div id="app">
         <h1 id="hay"></h1>
-    </div> -->
-    <my-element my-attr="Hey" class="btn-primary"></my-element>
+    </div>
+
+    <my-app></my-app>
 </body>
 </html>
 
@@ -21,6 +21,10 @@
     import {$, $n, $c, $r, $h, JDOM} from './index.js'
 
     const app = $('#app')
+
+    $('asd').animate({
+        'test': 423
+    })
 
 
     app.append(
@@ -32,6 +36,10 @@
     ).append(`<h1>Hey</h1>`)
 
     app.animate({background: '#FF0022'}, 1000)
+
+    app.on('click', e => {
+
+    })
 
     app.animator([
         {
@@ -54,12 +62,19 @@
         },
     ])
 
+    const HomePage = $c((el, self) => {
+        el.append($n('h1').text('Homepage'))
 
-    $r('my-element', $c(c => {
-        return c.append(c.attr('my-attr'))
-    }))
+    })
+
+    const MyApp = $c(el => {
+        el.append(new HomePage())
+        el.append($n('home-page'))
+    })
 
 
+    $r('home-page', HomePage)
+    $r('my-app', MyApp)
 
 </script>
 <style>

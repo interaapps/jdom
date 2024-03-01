@@ -1,4 +1,4 @@
-# JDOM `2.0.2`
+# JDOM `2.1.0`
 # A wrapper for query selector and html elements
 
 ## Install
@@ -25,8 +25,8 @@ el.css({
     background: '#000000'
 })
 
-el.each(el => {
-    console.log($(el).html())
+el.each($el => {
+    console.log(el.html())
 })
 
 el.text('Hello world')
@@ -84,11 +84,16 @@ $('#app').append(
 
 <script>
 // Create HTMLElement
-const MyComponent = $c(c => {
-    c.text('Hello World')
-    c.click(() => {
-        alert('Hey')
-    })
+const MyComponent = $c((c, self) => {
+    c.append(
+        $n('span')
+            .text('Hello World')
+            .click(() => {
+                alert('Hey')
+            })
+    )
+    
+    self.addStyle(`span { color: red }`)
 })
 
 // Register component

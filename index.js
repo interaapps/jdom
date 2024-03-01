@@ -1,10 +1,21 @@
 import _JDOM from './JDOM.js'
 
-export const $ = el => new JDOM(el)
-export const $n = el => JDOM.new(el)
-export const $c = (tag, comp) => JDOM.component(tag, comp)
-export const $r = (tag, comp) => JDOM.registerComponent(tag, comp)
-export const $h = html => JDOM.fromHTML(html)
+
+/**
+ * @param {HTMLElement|JDOM|NodeList|string} el
+ * @param {Element|parent} parent
+ * @return {_JDOM}
+ */
+export const $ = (el, parent = undefined) => new JDOM(el, parent)
+
+/**
+ * @param {HTMLTag|string} tag
+ * @return {_JDOM}
+ */
+export const $n = _JDOM.new
+export const $c = _JDOM.component
+export const $r = _JDOM.registerComponent
+export const $h = _JDOM.fromHTML
 export const JDOM = _JDOM
 
 export default {

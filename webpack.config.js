@@ -1,6 +1,6 @@
 const path = require('path');
 require("babel-polyfill")
-module.exports = {
+module.exports = [{
     entry: ['babel-polyfill', './index.js'],
     output: {
         filename: 'jdom.js',
@@ -24,4 +24,4 @@ module.exports = {
         ]
     }
 
-};
+}];
