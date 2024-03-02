@@ -9,22 +9,121 @@
     <title>Document</title>
 </head>
 <body>
-    <div id="app">
-        <h1 id="hay"></h1>
-    </div>
-
+    <div id="app"></div>
     <my-app></my-app>
+
 </body>
 </html>
 
 <script type="module">
-    import {$, $n, $c, $r, $h, JDOM} from './index.js'
+    import {$, $n, $c, $r, $h, $escHTML, JDOM, html} from './index.js'
+    import { state, computed, watch } from './src/template/hooks.js'
+
+
+    function showDialog() {
+        const dialog = html`
+            <div>
+                <button @click=${() => dialog.remove()}>X</button>
+                <h1>Hello World</h1>
+                <h2>Yee</h2>
+            </div>
+        `.appendTo(document)
+    }
+
+    const isEnabled = state(false)
+    const count = state(0)
+
+    const computedCount = computed(() => count.value * 3, [count])
+
+    watch([count], () => {
+        console.log(count.value)
+    })
+
+    const elements = state([
+        {
+            name: 'John'
+        },
+        {
+            name: 'Valery'
+        }
+    ])
+
+    function waitforme() {
+        return new Promise((res) => {
+            setTimeout(() => {
+                console.log('YAA')
+                res(html`<h3>HELLO WORLD!</h3>`)
+            }, 2000)
+        })
+    }
+
+    const name = state('')
+
+    const myHTML = html`
+        <!-- ${waitforme()} -->
+
+
+        <input :bind=${name} >
+
+        ${name}
+
+        ${computed(() => isEnabled.value ? 'Hallo' : 'Welt', [isEnabled])}
+
+        <br><br><br>
+
+        <button @click=${showDialog}>Show Dialog</button>
+        <br><br>
+        <br><br>
+
+        <!-- Button test test -->
+        <button
+                style=${{
+                    background: '#347766'
+                }}
+                class=${computed(() => ({
+                    'btn': true,
+                    'primary' : count.value > 5,
+                }), [count])}
+
+                this-is-val=${count}
+                @click=${() => count.value++}
+        >
+            The count is ${computedCount}
+        </button>
+
+
+        <br><br><br>
+
+        <!-- Toggle test -->
+        <button @click=${() => isEnabled.value = !isEnabled.value}>Show</button>
+
+        <div :if=${isEnabled} @click=${() => alert('Yo')} @:create=${console.log('Created')} shit>
+            Now I'm shown :o
+        </div>
+
+        <br><br><br>
+
+        <!-- Reactive for-each -->
+        ${computed(() => elements.value.map(user => html`
+            <div>
+                <span>${user.name}</span>
+            </div>
+        `), [elements])}
+
+        <button @click=${() => elements.value = [...elements.value, {name: 'Joe'}]}>Add Element</button>
+    `
+
+
+    console.log(myHTML)
+    $(myHTML).appendTo(document)
 
     const app = $('#app')
 
     $('asd').animate({
         'test': 423
     })
+
+    $(document).append($n('h2').text('Hallo Welt'))
 
 
     app.append(
@@ -73,9 +172,14 @@
     })
 
 
+    $h(`<h1>
+        Hallo: ${$escHTML('Hello World')}
+        Welt: ${$escHTML('Welt')}
+    </h1>`)
+        .appendTo(document)
+
     $r('home-page', HomePage)
     $r('my-app', MyApp)
-
 </script>
 <style>
     a {

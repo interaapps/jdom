@@ -1,4 +1,5 @@
-import './html-typedefs.js'
+import '../html-typedefs.js'
+import Hook from './template/Hook.js'
 
 /**
  * @typedef Animation
@@ -10,6 +11,7 @@ import './html-typedefs.js'
  * @typedef JDOMCustomHTMLElement
  * @extends HTMLElement
  * @property {function(style: string)} addStyle
+ * @property {any} #value
  * @property {...any} args
  * @property {Node} el
  */
@@ -28,8 +30,10 @@ class JDOM {
          */
         this.elem = []
 
-        if (element instanceof NodeList) {
-            this.elem = element
+        this.hooks = {}
+
+        if (element instanceof NodeList || Array.isArray(element)) {
+            this.elem = [...element]
         } else if (element instanceof Node || element === document  || element === window) {
             this.elem = [element]
         } else if (element instanceof JDOM) {
@@ -68,7 +72,7 @@ class JDOM {
     * @param {function(Node)} callable
     * @return {JDOM}
     */
-    eachElems(callable) {
+    eachNodes(callable) {
         for (const el of this.elem) {
             callable.call(el, el)
         }
@@ -83,25 +87,41 @@ class JDOM {
     }
 
     /**
+     * @return {JDOM[]}
+     */
+    children() {
+        return this.elem.map(e => new JDOM(e))
+    }
+
+    /**
      * @return {Node|null}
      */
-    element() {
+    firstNode() {
         return this.elem.length > 0 ? this.elem[0] : null
     }
 
     /**
      * @return {Node[]}
      */
-    elements() {
+    nodes() {
         return this.elem
     }
 
     /**
-     * @param {string|Number} text
+     * @param {string|Number|Hook} text
      * @return {JDOM}
      */
     setText(text) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
+            if (text instanceof Hook) {
+                this.hooks.text = [text, text.addListener(val => el.innerText = val)]
+                el.textContent = text.value
+                return
+            } else if (this.hooks.text) {
+                this.hooks.text[0].removeListener(this.hooks.text[1])
+                this.hooks.text = undefined
+            }
+
             el.innerText = text
         })
     }
@@ -110,12 +130,12 @@ class JDOM {
      * @return {string|null}
      */
     getText() {
-        const el = this.element()
+        const el = this.firstNode()
         return el ? el.innerText : null
     }
 
     /**
-     * @param {string|undefined} text
+     * @param {string|Number|Hook|undefined} text
      * @return {string|null|JDOM}
      */
     text(text = undefined) {
@@ -123,11 +143,20 @@ class JDOM {
     }
 
     /**
-     * @param {string} html
+     * @param {string|Hook} html
      * @return {JDOM}
      */
     setHTML(html) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
+            if (html instanceof Hook) {
+                this.hooks.html = [html, html.addListener(val => el.innerHTML = val)]
+                el.innerHTML = html.value
+                return
+            } else if (this.hooks.html) {
+                this.hooks.html[0].removeListener(this.hooks.html[1])
+                this.hooks.html = undefined
+            }
+
             el.innerHTML = html
         })
     }
@@ -136,12 +165,12 @@ class JDOM {
      * @return {string|null}
      */
     getHTML() {
-        const el = this.element()
+        const el = this.firstNode()
         return el ? el.innerHTML : null
     }
 
     /**
-     * @param {string|undefined} html
+     * @param {string|Hook|undefined} html
      * @return {JDOM|string|null}
      */
     html(html = undefined) {
@@ -157,7 +186,7 @@ class JDOM {
      * @return {JDOM}
      */
     css(css) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
             for (const [key, value] of Object.entries(css)) {
                 el.style[key] = value
             }
@@ -177,7 +206,7 @@ class JDOM {
      * @return {HTMLAttributes}
      */
     getAttr(name) {
-        const el = this.element()
+        const el = this.firstNode()
         return el ? el.getAttribute(name) : null
     }
 
@@ -185,7 +214,7 @@ class JDOM {
      * @return {Object}
      */
     getAttributes() {
-        const el = this.element()
+        const el = this.firstNode()
         const attribs = {}
         if (el) {
             const elAttributes = el.attributes
@@ -198,11 +227,20 @@ class JDOM {
 
     /**
      * @param {HTMLAttributes} name
-     * @param {string} val
+     * @param {string|Hook} val
      * @return {JDOM}
      */
     setAttr(name, val) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
+            if (val instanceof Hook) {
+                this.hooks[`attribute-${name}`] = [val, val.addListener(val => el.setAttribute(name, val))]
+                el.setAttribute(name, val.value)
+                return
+            } else if (this.hooks[`attribute-${name}`]) {
+                this.hooks[`attribute-${name}`][0].removeListener(this.hooks[`attribute-${name}`][1])
+                this.hooks[`attribute-${name}`] = undefined
+            }
+
             el.setAttribute(name, val)
         })
     }
@@ -212,7 +250,7 @@ class JDOM {
      * @return {JDOM}
      */
     removeAttr(name) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
             el.removeAttribute(name)
         })
     }
@@ -244,7 +282,7 @@ class JDOM {
      * @return {boolean}
      */
     hasClass(name) {
-        const el = this.element()
+        const el = this.firstNode()
         return el ? el.classList.contains(name) : false
     }
 
@@ -253,7 +291,7 @@ class JDOM {
      * @return {JDOM}
      */
     addClass(...names) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
             for (let name of names) {
                 el.classList.add(name)
             }
@@ -272,7 +310,7 @@ class JDOM {
      * @return {string[]}
      */
     getClasses() {
-        const el = this.element()
+        const el = this.firstNode()
         return el ? [...el.classList] : []
     }
 
@@ -293,7 +331,7 @@ class JDOM {
      * @return {JDOM}
      */
     removeClass(name) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
             el.classList.remove(name)
         })
     }
@@ -303,7 +341,7 @@ class JDOM {
      * @return {JDOM}
      */
     toggleClass(name) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
             if (el.classList.contains(name)) {
                 el.classList.remove(name)
             } else {
@@ -316,7 +354,7 @@ class JDOM {
      * @return {any}
      */
     getValue() {
-        const el = this.element()
+        const el = this.firstNode()
         return el ? el.value : null
     }
 
@@ -325,7 +363,7 @@ class JDOM {
      * @return {JDOM}
      */
     setValue(val) {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
             el.value = val
         })
     }
@@ -343,16 +381,31 @@ class JDOM {
     }
 
     /**
+     * @param {Hook} hook
+     * @return {JDOM}
+     */
+    model(hook) {
+        if (this.hooks.bind) {
+            this.hooks.bind[0].removeListener(this.hooks.bind[1])
+        }
+        this.hooks.bind = [hook, hook.addListener(val => this.val(val))]
+
+        this.val(hook.value)
+
+        return this
+    }
+
+    /**
      * @param name
      * @param value
      * @return {*|null|JDOM}
      */
     setOrGetProperty(name, value = undefined) {
         if (value === undefined) {
-            const el = this.element()
+            const el = this.firstNode()
             return el ? el[name] : null
         } else {
-            return this.eachElems(el => {
+            return this.eachNodes(el => {
                 el[name] = value
             })
         }
@@ -367,17 +420,17 @@ class JDOM {
     }
 
     /**
-     * @param {Array<string|JDOM|Node>} nodes
+     * @param {...(string|JDOM|Node)} nodes
      * @return {JDOM}
      */
     append(...nodes) {
         let parent = this
-        if (parent.element() === document)
+        if (parent.firstNode() === document)
             parent = new JDOM(document.body)
 
         for (const node of nodes) {
             if (typeof node === 'string') {
-                parent.eachElems(el => {
+                parent.eachNodes(el => {
                     if (el instanceof Element) {
                         el.insertAdjacentHTML('beforeend', node)
                     } else {
@@ -388,11 +441,13 @@ class JDOM {
                     }
                 })
             } else if (node instanceof JDOM) {
-                parent.eachElems(el => {
-                    el.appendChild(node.element())
+                parent.eachNodes(el => {
+                    node.eachNodes(n => {
+                        el.appendChild(n)
+                    })
                 })
             } else {
-                parent.eachElems(el => {
+                parent.eachNodes(el => {
                     el.appendChild(node)
                 })
             }
@@ -401,17 +456,29 @@ class JDOM {
     }
 
     /**
-     * @param {string, JDOM, Node} node
+     * @param {...(string|JDOM|Node)} nodes
      * @return {JDOM}
      */
-    prepend(node) {
+    appendTo(...nodes) {
+        for (const node of nodes) {
+            new JDOM(node).append(this)
+        }
+
+        return this
+    }
+
+    /**
+     * @param {...(string|JDOM|Node)} nodes
+     * @return {JDOM}
+     */
+    prepend(...nodes) {
         let parent = this
-        if (parent.element() === document)
+        if (parent.firstNode() === document)
             parent = new JDOM(document.body)
 
         for (const node of nodes) {
             if (typeof node === 'string') {
-                parent.eachElems(el => {
+                parent.eachNodes(el => {
                     if (el instanceof Element) {
                         el.insertAdjacentHTML('beforebegin', node)
                     } else {
@@ -422,11 +489,13 @@ class JDOM {
                     }
                 })
             } else if (node instanceof JDOM) {
-                parent.eachElems(el => {
-                    el.prepend(node.element())
+                parent.eachNodes(el => {
+                    node.eachNodes(n => {
+                        el.prepend(n)
+                    })
                 })
             } else {
-                parent.eachElems(el => {
+                parent.eachNodes(el => {
                     el.prepend(node)
                 })
             }
@@ -435,11 +504,23 @@ class JDOM {
     }
 
     /**
+     * @param {Array<string|JDOM|Node>} nodes
+     * @return {JDOM}
+     */
+    prependTo(...nodes) {
+        for (const node of nodes) {
+            new JDOM(node).prepend(this)
+        }
+
+        return this
+    }
+
+    /**
      * Is the element hidden by style.display === 'none'?
      * @return {boolean}
      */
     hidden() {
-        const el = this.element()
+        const el = this.firstNode()
         return el ? el.style.display === 'none' : false
     }
 
@@ -454,27 +535,43 @@ class JDOM {
      * @return {JDOM}
      */
     show() {
-        return this.eachElems(el => el.style.display = '')
+        return this.eachNodes(el => el.style.display = '')
     }
 
     /**
      * @return {JDOM}
      */
     hide() {
-        return this.eachElems(el => el.style.display = 'none')
+        return this.eachNodes(el => el.style.display = 'none')
     }
 
     /**
      * @return {JDOM}
      */
     toggle() {
-        return this.eachElems(el => {
+        return this.eachNodes(el => {
             if (el.style.display === 'none') {
                 el.style.display = ''
             } else {
                 el.style.display = 'none'
             }
         })
+    }
+
+    /**
+     * @param {Hook} hook
+     * @return {JDOM}
+     */
+    showIf(hook) {
+        this.hooks.showIf = [hook, hook.addListener(val => val ? this.show() : this.hide())]
+
+        if (hook.value) {
+            this.show()
+        } else {
+            this.hide()
+        }
+
+        return this
     }
 
     /**
@@ -513,7 +610,7 @@ class JDOM {
      * @return {JDOM}
      */
     on(listener, callable) {
-        this.eachElems(el => {
+        this.eachNodes(el => {
             for (const listenerSplit of listener.split('|')) {
                 el.addEventListener(listenerSplit, callable)
             }
@@ -527,7 +624,7 @@ class JDOM {
      * @return {JDOM}
      */
     removeEvent(listener, callable) {
-        this.eachElems(el => {
+        this.eachNodes(el => {
             el.removeEvent(listener, callable)
         })
         return this
@@ -550,7 +647,7 @@ class JDOM {
      */
     click(callable = undefined) {
         if (callable === undefined) {
-            return this.eachElems(el => {
+            return this.eachNodes(el => {
                 el.click()
             })
         }
@@ -644,7 +741,7 @@ class JDOM {
      * @return {JDOM}
      */
     remove() {
-        return this.eachElems(el => el.remove())
+        return this.eachNodes(el => el.remove())
     }
 
     /**
@@ -679,17 +776,25 @@ class JDOM {
     }
 
     /**
+     * A helper to create custom elements
+     *
      * @param {function(JDOM, JDOMCustomHTMLElement)} component
      * @param {Object} options
      * @return {JDOMCustomHTMLElement}
      */
     static component(component, {shadowed = false, style = undefined} = {}) {
         return class extends HTMLElement {
+            static get observedAttributes() {
+                return ['value'];
+            }
+
             addStyle(style) {
                 const styleEl = document.createElement('style')
                 styleEl.textContent = style
                 this.el.appendChild(styleEl)
             }
+
+            #value = null
 
             constructor(...args) {
                 super()
@@ -709,21 +814,43 @@ class JDOM {
                     this.addStyle(style)
                 }
 
+                this.#value = this.value
+
                 const $el = new JDOM(this.el)
-                component.call(this, $el, this)
+
+                ;(async () => {
+                    const res = await component.call(this, $el, this)
+                    if (res) {
+                        $el.append(res)
+                    }
+                })();
+            }
+
+            set value(val) {
+                this.#value = val
+                this.dispatchEvent(new CustomEvent('input:value'))
+            }
+
+            get value() {
+                return this.#value
             }
         }
     }
 
     /**
+     * Registers a webcomponent
+     *
      * @param {string} tag
      * @param {Node|HTMLElement|JDOMCustomHTMLElement} component
      */
     static registerComponent(tag, component) {
-        return window.customElements.define(tag, component)
+        window.customElements.define(tag, component)
+        return component
     }
 
     /**
+     * When the document is ready, the callback will be called
+     *
      * @param {function(Event)} callback
      */
     static ready(callback) {
@@ -731,11 +858,32 @@ class JDOM {
     }
 
     /**
+     * HTML-Escapes the given text to prevent XSS.
+     *
+     * @param {string} text
+     * @return string
+     */
+    static escapeHTML(text) {
+        const textEl = document.createElement('jdom-internal-text-element')
+        textEl.innerText = text
+        return textEl.innerHTML
+    }
+
+    /**
      * @param {string} html
      * @return {JDOM}
      */
     static fromHTML(html) {
-        return JDOM.new('template').html(html || '')
+        const template = JDOM.new('div').html(html || '')
+        const children = template.children()
+
+        const el = children.length === 0 ? null :
+            children.length === 1 ? children[0] :
+                children
+
+        template.remove()
+
+        return el
     }
 }
 
