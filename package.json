@@ -1,6 +1,6 @@
 {
   "name": "jdomjs",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A wrapper for query selector and html elements",
   "main": "index.js",
 
