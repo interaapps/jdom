@@ -89,8 +89,15 @@ class JDOM {
     /**
      * @return {JDOM[]}
      */
-    children() {
+    elements() {
         return this.elem.map(e => new JDOM(e))
+    }
+
+    /**
+     * @return {JDOM[]}
+     */
+    children() {
+        return [...this.firstNode().childNodes].map(e => new JDOM(e))
     }
 
     /**
@@ -840,12 +847,17 @@ class JDOM {
     /**
      * Registers a webcomponent
      *
-     * @param {string} tag
-     * @param {Node|HTMLElement|JDOMCustomHTMLElement} component
+     * @param {string|Object.<string, Node|HTMLElement|JDOMCustomHTMLElement>} tag
+     * @param {Node|HTMLElement|JDOMCustomHTMLElement|undefined} component
      */
-    static registerComponent(tag, component) {
-        window.customElements.define(tag, component)
-        return component
+    static registerComponent(tag, component = undefined) {
+        if (typeof  tag === 'string') {
+            window.customElements.define(tag, component)
+            return component
+        }
+        Object.entries(tag).forEach(([name, comp]) => {
+            window.customElements.define(name, comp)
+        })
     }
 
     /**
@@ -875,7 +887,7 @@ class JDOM {
      */
     static fromHTML(html) {
         const template = JDOM.new('div').html(html || '')
-        const children = template.children()
+        const children = template?.first()
 
         const el = children.length === 0 ? null :
             children.length === 1 ? children[0] :

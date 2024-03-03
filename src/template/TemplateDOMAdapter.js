@@ -10,6 +10,20 @@ export default class TemplateDOMAdapter {
         let el;
         let svg = false
 
+        if (typeof conf.tag === 'function') {
+            const elAttribs = {}
+            for (const [key, value] of conf.attributes) {
+                if (key === ':bind') {
+                    elAttribs.value = value
+                } else {
+                    elAttribs[key] = value
+                }
+            }
+
+            const newEl = conf.tag(elAttribs)
+
+            return this.createFromValue({value: newEl})
+        }
         if (conf.tag.toLowerCase() === '!doctype')
             return null
 
@@ -30,7 +44,7 @@ export default class TemplateDOMAdapter {
         let addChildren = true
         let addedChildren = false
 
-        const attributes = {}
+        const attributes = []
         const events = {}
         let onCreate = () => {}
         let model = null
@@ -41,7 +55,7 @@ export default class TemplateDOMAdapter {
                 elem.append(element)
             }
 
-            Object.entries(attributes).forEach(([key, value]) => {
+            attributes.forEach(([key, value]) => {
                 const setValue = (key, value) => {
                     if (key === 'style') {
                         if (typeof value === 'object') {
@@ -49,23 +63,25 @@ export default class TemplateDOMAdapter {
                             Object.entries(value).forEach(([key, value]) => {
                                 elem.style[key] = value
                             })
+                            return
                         }
-                        return;
                     }
                     if (key === 'class') {
-                        let classes = []
-                        if (Array.isArray(value)) {
-                            classes = value
-                        } else if (typeof value === 'object') {
-                            Object.entries(value).forEach(([key, value]) => {
-                                if (value) {
-                                    classes.push(key)
-                                }
-                            })
+                        if (typeof value !== 'string') {
+                            let classes = []
+                            if (Array.isArray(value)) {
+                                classes = value
+                            } else if (typeof value === 'object') {
+                                Object.entries(value).forEach(([key, value]) => {
+                                    if (value) {
+                                        classes.push(key)
+                                    }
+                                })
+                            }
+                            [...elem.classList].filter(el => !classes.includes(el)).forEach(el => elem.classList.remove(el))
+                            classes.filter(el => !elem.classList.contains(el)).forEach(el => elem.classList.add(el))
+                            return
                         }
-                        [...elem.classList].filter(el => !classes.includes(el)).forEach(el => elem.classList.remove(el))
-                        classes.filter(el => !elem.classList.contains(el)).forEach(el => elem.classList.add(el))
-                        return;
                     }
                     elem.setAttribute(key, value)
                 }
@@ -101,7 +117,16 @@ export default class TemplateDOMAdapter {
             onCreate(elem)
         }
 
-        for (const [key, value] of Object.entries(conf.attributes)) {
+        for (let [key, value] of conf.attributes) {
+            if (typeof key === 'function') {
+                key = key()
+            }
+
+            if (typeof key === 'object') {
+                Object.entries(key).forEach(([key, value]) => attributes.push([key, value]))
+                continue
+            }
+
             if (key.startsWith('@')) {
                 events[key.substring(1)] = value
             } else if(key === ':bind') {
@@ -139,7 +164,7 @@ export default class TemplateDOMAdapter {
             } else if(key === '@:create') {
                 onCreate = value
             } else {
-                attributes[key] = value
+                attributes.push([key, value])
             }
         }
 

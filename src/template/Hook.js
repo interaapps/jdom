@@ -96,4 +96,8 @@ export default class Hook {
     removeListener(listener) {
         this.listeners = this.listeners.filter(l => l !== listener)
     }
+
+    toString() {
+        return `${this.value}`
+    }
 }

@@ -26,6 +26,8 @@
                 <button @click=${() => dialog.remove()}>X</button>
                 <h1>Hello World</h1>
                 <h2>Yee</h2>
+
+                Hallo ${name}!
             </div>
         `.appendTo(document)
     }
@@ -105,12 +107,12 @@
 
         <!-- Reactive for-each -->
         ${computed(() => elements.value.map(user => html`
-            <div>
+            <div ${user}>
                 <span>${user.name}</span>
             </div>
         `), [elements])}
 
-        <button @click=${() => elements.value = [...elements.value, {name: 'Joe'}]}>Add Element</button>
+        <button @click=${() => elements.value = [...elements.value, {name: 'Joe', a:2}]}>Add Element</button>
     `
 
 

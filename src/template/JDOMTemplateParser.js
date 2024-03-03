@@ -54,7 +54,7 @@ export default class JDOMTemplateParser {
      * @return {{attributes: {}, from: number, tag: string, to: number, type: string, body: *[]}}
      */
     readTag() {
-        let tag = { type: 'element', tag: '', attributes: {}, body: [], from: this.index, to: 0 }
+        let tag = { type: 'element', tag: '', attributes: [], body: [], from: this.index, to: 0 }
         let opened = ''
         let tagNameOpened = true
         let closingTag = false
@@ -78,6 +78,8 @@ export default class JDOMTemplateParser {
                     } else if (value === '>') {
                         tagNameOpened = false
                         continue
+                    } else if (type === 'value') {
+                        tag.tag = value
                     } else if (value !== '<') {
                         tag.tag += value
                     }
@@ -116,7 +118,7 @@ export default class JDOMTemplateParser {
     }
 
     readAttributes() {
-        const attributes = {}
+        const attributes = []
         let inAttribute = false
 
         while (this.hasNext()) {
@@ -127,7 +129,7 @@ export default class JDOMTemplateParser {
                 break;
             } else {
                 const {name, value: attrValue} = this.readAttribute()
-                attributes[name] = attrValue
+                attributes.push([name, attrValue])
 
                 if (this.get().value === '>' || (this.get().value === '/' && this.get(this.index + 1)?.value === '>')) {
                     break;
@@ -155,25 +157,43 @@ export default class JDOMTemplateParser {
 
             if (!hasReadName) {
                 let doBreak = false
-                let [{type, value: name}] = this.readUntil(({type, value}) => {
+
+                if (type === 'value') {
+                    out.name = value
+                    hasReadName = true
+                    continue
+                }
+
+                let [{value: name}] = this.readUntil(({type, value}) => {
                     if (value === '>') {
                         doBreak = true
                         out.isLast = true
                         return true
                     }
                     if (value === '=' || this.isWhiteSpace(value)) {
-                        return true
+                        if (value === '=')
+                            return true
+
+                        let i = this.index
+                        while (this.get(i) && this.isWhiteSpace(this.get(i).value)) {
+                            i++
+                        }
+                        if (this.get(i).value !== '=') {
+                            doBreak = true
+                            return true
+                        }
                     }
                 })
 
                 if (name === '>') break
 
-                out.name = name
+                if (!out.name)
+                    out.name = name
                 if (doBreak) break
                 hasReadName = true
                 continue
             } else if (!hasReadEquals) {
-                if (value !== '=') {
+                if (value !== '=' || value === '>') {
                     break
                 }
                 hasReadEquals = true
