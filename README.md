@@ -1,4 +1,4 @@
-# JDOM `3.0.1`
+# JDOM `3.0.2`
 ## A wrapper for query selector and html elements + templating & reactivity framework
 
 ## Install
@@ -9,12 +9,12 @@ npm install jdomjs
 
 ### Module
 ```js
-import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@3.0.1/index.js'
+import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@3.0.2/index.js'
 ```
 
 ### HTML import
 ```js
-<script src="https://cdn.jsdelivr.net/npm/jdom@3.0.1/dist/jdom.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jdom@3.0.2/dist/jdom.js"></script>
 ```
 
 ## DOM-Modfier Usage
@@ -164,6 +164,17 @@ html`
     name: ${name} <br>
     <input :bind=${name}>
 `
+
+// Function components
+function UserLayout({ exampleProp, $slot }) {
+    return html`<div class="user-profile">
+        ${$slot}
+    </div>`
+}
+
+html`<${UserLayout} exampleProp="test">
+    Profile
+</${UserLayout}>`
 ```
 
 # Reactivity (JDOM-Hooks)

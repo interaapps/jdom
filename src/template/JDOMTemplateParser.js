@@ -87,21 +87,39 @@ export default class JDOMTemplateParser {
 
 
                 if (value === '>') {
-                    if (this.autoCloseTags.includes(tag.tag.toLowerCase())) {
+                    if (typeof tag.tag === 'string' && this.autoCloseTags.includes(tag.tag.toLowerCase())) {
                         this.next()
                         break
                     }
                     opened = true
                 }
             } else if (closingTag) {
-                const next = `</${tag.tag}`
+                const next = `</`
 
                 // TODO: Check why -1 is needed
                 if (this.nextIs(next, -1)) {
-                    this.next(next.length - 1)
-                    this.skipEmpty()
-                    // Skipping >
-                    this.next()
+                    let isEnding = false
+                    // typeof tag.tag === 'string'
+                    const afterClosingSlash = this.get(this.index + 1)
+                    if (afterClosingSlash.type === 'value') {
+                        if (typeof afterClosingSlash.value === 'function' && afterClosingSlash.value === tag.tag) {
+                            isEnding = true
+                            tag.attributes.slot = tag.body
+                            this.next()
+                        }
+                    } else {
+                        if (!this.nextIs(tag.tag))  {
+                            isEnding = true
+                            this.next(tag.tag.length)
+                        }
+                    }
+
+                    if (isEnding) {
+                        this.next(next.length - 1)
+                        this.skipEmpty()
+                        // Skipping >
+                        this.next()
+                    }
 
                     break
                 }

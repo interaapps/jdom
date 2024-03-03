@@ -12,6 +12,11 @@ export default class TemplateDOMAdapter {
 
         if (typeof conf.tag === 'function') {
             const elAttribs = {}
+
+            if (conf.body.length > 0) {
+                elAttribs.$slot = (new TemplateDOMAdapter(conf.body)).create(svg)
+            }
+
             for (const [key, value] of conf.attributes) {
                 if (key === ':bind') {
                     elAttribs.value = value
@@ -24,6 +29,7 @@ export default class TemplateDOMAdapter {
 
             return this.createFromValue({value: newEl})
         }
+
         if (conf.tag.toLowerCase() === '!doctype')
             return null
 
