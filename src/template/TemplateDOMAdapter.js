@@ -68,7 +68,7 @@ export default class TemplateDOMAdapter {
         const setup = (elem = el) => {
             addedChildren = true
             for (const element of (new TemplateDOMAdapter(conf.body)).create(svg)) {
-                elem.append(element)
+                this.appendElement(elem, element)
             }
 
             attributes.forEach(([key, value]) => {
@@ -149,7 +149,7 @@ export default class TemplateDOMAdapter {
                 model = value
             } else if(key === ':if') {
                 const savedElement = el
-                const commentElement = document.createComment('JDOM IS AMAIZING')
+                const commentElement = document.createComment('JDOM-Templating:if')
                 let lastValue = false
                 const getValue = () => {
                     lastValue = value instanceof Hook ? value.value : value
@@ -163,20 +163,19 @@ export default class TemplateDOMAdapter {
                     addChildren = false
                 }
 
-                value.listeners.push(value => {
+                value.addListener(value => {
                     if (lastValue === value) return;
                     lastValue = value
 
                     if (value) {
-                        el.replaceWith(savedElement)
+                        this.replaceElement(el, savedElement)
                         el = savedElement
                         if (!addedChildren) setup(el)
                     } else {
-                        el.replaceWith(commentElement)
+                        this.replaceElement(el, commentElement)
                         el = commentElement
                     }
                 })
-
             } else if(key === '@:create') {
                 onCreate = value
             } else {
@@ -204,10 +203,9 @@ export default class TemplateDOMAdapter {
             const isArray = Array.isArray(state.value)
 
             let removeEl = () => {}
-            const listeners = []
             let outputElement = null
 
-            const l = value.addListener(val => {
+            const hookListener = state.addListener(val => {
                 if (!(isArray && Array.isArray(val) || !isArray && !Array.isArray(val))) {
                     if (outputElement) {
                         let elements = this.createFromValue({value})
@@ -218,36 +216,45 @@ export default class TemplateDOMAdapter {
                         if (elements.length > 0) {
                             const newElements = []
                             removeEl = () => {
-                                newElements.forEach(e => (e.$remove || e.remove)())
+                                newElements.forEach(e => this.removeElement(e))
                             }
                             const firstEl = elements.shift()
-                            outputElement.replaceWith(firstEl)
+                            this.replaceElement(outputElement, firstEl)
+
                             for (const item of elements) {
-                                firstEl.before(item)
+                                this.beforeElement(firstEl, item)
                                 newElements.push(item)
                             }
                         } else {
-                            value.removeListener(l)
-                            listeners.forEach(li => value.removeListener(i))
                             removeEl()
                         }
+                        value.removeListener(hookListener)
                     }
                 }
             })
 
+            let stateListener
+
             if (isArray) {
-                const comment = document.createComment('JDOM IS AMAIZING')
+                const comment = document.createComment('JDOM-Templating:arrhook')
                 outputElement = comment
 
                 let elements = []
 
-                removeEl = () => elements.forEach(e => e.forEach(i => i.remove()))
+                removeEl = () => elements.forEach(e => e.forEach(i => this.removeElement(i)))
                 const setElements = (prepend = true) => {
                     for (const item of elements) {
-                        item.elements.forEach(e => e.remove())
+                        item.elements.forEach(e => this.removeElement(e))
                         elements = elements.filter(e => e !== item)
                     }
                     let i = 0
+
+                    if (!Array.isArray(state.value)) {
+                        this.replaceElement(outputElement, this.createFromValue({ value: state.value }))
+                        state.removeListener(stateListener)
+                        return
+                    }
+
                     for (const item of state.value) {
                         let itemEls = this.createFromValue({value: item})
                         if (!Array.isArray(itemEls))
@@ -259,11 +266,11 @@ export default class TemplateDOMAdapter {
                         })
 
                         if (prepend)
-                            itemEls.forEach(e => comment.before(e))
+                            itemEls.forEach(e => this.beforeElement(comment, e))
                     }
                 }
 
-                state.listeners.push(() => {
+                stateListener = state.addListener(() => {
                     setElements()
                 })
 
@@ -277,39 +284,35 @@ export default class TemplateDOMAdapter {
             } else if (typeof state.value === 'string' || typeof state.value === 'number' || typeof state.value === 'boolean') {
                 outputElement = this.createText({value: state.value})
 
-                state.listeners.push(() => {
-                    outputElement.textContent = state.value
+                const listener = state.addListener(() => {
+                    if (typeof state.value === 'string' || typeof state.value === 'number' || typeof state.value === 'boolean') {
+                        outputElement.textContent = state.value
+                    } else {
+                        this.replaceElement(outputElement, this.createFromValue({ value }))
+                        state.removeListener(listener)
+                    }
                 })
                 return outputElement
             } else {
                 outputElement = this.createFromValue({value: state.value})
-                state.listeners.push(() => {
+
+                state.addListener(() => {
                     let element = this.createFromValue({value: state.value})
 
-                    if (Array.isArray(element))
-                        [element] = element
-
-                    outputElement.replaceWith(element)
-                    outputElement = element
+                    outputElement = this.replaceElement(outputElement, element)
                 })
                 return outputElement
             }
         } else if (value instanceof JDOM || value instanceof Node || value instanceof NodeList) {
             return (new JDOM(value)).nodes()
+        } else if (Array.isArray(value)) {
+            return value.map(e => this.createFromValue({value: e})).reduce((s, e) => Array.isArray(e) ? [...s, ...e] : [...s, e], [])
         } else if (value instanceof Promise) {
-            const comment = document.createComment('JDOM IS AMAIZING')
+            let comment = document.createComment('JDOM-Templating:promise')
+
             value.then(el => {
                 let elements = this.createFromValue({value: el})
-                if (!Array.isArray(elements))
-                    elements = [elements]
-
-                if (elements.length > 0) {
-                    const firstEl = elements.shift()
-                    comment.replaceWith(firstEl)
-                    for (const item of elements) {
-                        firstEl.before(item)
-                    }
-                }
+                comment = this.replaceElement(comment, elements)
             })
             return comment
         } else if (Array.isArray(value)) {
@@ -338,6 +341,56 @@ export default class TemplateDOMAdapter {
             }
         }
         return elements
+    }
+
+    removeElement(el) {
+        el.dispatchEvent(new CustomEvent('jdom:detach'))
+        el.remove()
+    }
+
+    replaceElement(from, to) {
+        const replElements = Array.isArray(from) ? [...from] : [from]
+        const endElements = Array.isArray(to) ? [...to] : [to]
+
+        if (endElements.length === 0)
+            endElements.push(document.createComment('JDOM-Templating:REPLACEMENT'))
+
+        const finalEnd = [...endElements]
+
+        const firstEl = replElements.shift()
+        const firstEndEl = endElements.shift()
+
+        firstEl.replaceWith(firstEndEl)
+
+        replElements.forEach(e => this.removeElement(e))
+
+        endElements.forEach(e => {
+            this.afterElement(firstEndEl, e)
+        })
+
+        firstEl.dispatchEvent(new CustomEvent('jdom:replace_with', { to }))
+        firstEl.dispatchEvent(new CustomEvent('jdom:detach'))
+        firstEndEl.dispatchEvent(new CustomEvent('jdom:child_attached'))
+
+        return finalEnd
+    }
+
+    appendElement(to, el) {
+        to.dispatchEvent(new CustomEvent('jdom:child_attached'))
+        el.dispatchEvent(new CustomEvent('jdom:attach'))
+        to.append(el)
+    }
+
+    afterElement(to, el) {
+        to.dispatchEvent(new CustomEvent('jdom:child_added_after'))
+        el.dispatchEvent(new CustomEvent('jdom:attach'))
+        to.after(el)
+    }
+
+    beforeElement(to, el) {
+        to.dispatchEvent(new CustomEvent('jdom:child_added_before'))
+        el.dispatchEvent(new CustomEvent('jdom:attach'))
+        to.before(el)
     }
 
     create(inSVG = false) {

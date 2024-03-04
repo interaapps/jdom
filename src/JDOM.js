@@ -845,6 +845,16 @@ class JDOM {
     }
 
     /**
+     * @param {string|Event} event
+     * @param {any} options
+     * @return {JDOM}
+     */
+    dispatch(event, options = {}) {
+        this.eachNodes(el => el.dispatchEvent(typeof event === 'string' ? new CustomEvent(event, options) : event))
+        return this
+    }
+
+    /**
      * Registers a webcomponent
      *
      * @param {string|Object.<string, Node|HTMLElement|JDOMCustomHTMLElement>} tag

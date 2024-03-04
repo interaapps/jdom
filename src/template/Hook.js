@@ -11,7 +11,7 @@ export default class Hook {
 
         return new Proxy(this, {
             get: (target, prop)  => {
-                if (Object.hasOwn(target, prop) || prop === 'value') {
+                if (Object.hasOwn(target, prop) || prop in target || prop === 'value') {
                     return Reflect.get(target, prop);
                 }
                 if (typeof target._value === 'object' && !Array.isArray(target._value) && target._value !== null) {
@@ -33,7 +33,7 @@ export default class Hook {
                 return Reflect.get(target, prop);
             },
             set: (target, prop, value) => {
-                if (Object.hasOwn(target, prop) || prop === 'value') {
+                if (Object.hasOwn(target, prop) || prop in target || prop === 'value') {
                     return Reflect.set(target, prop, value);
                 }
                 if (typeof target._value === 'object' && !Array.isArray(target._value) && target._value !== null) {
