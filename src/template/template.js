@@ -15,6 +15,7 @@ export function html(strings, ...values) {
     const parser = JDOMTemplateParser.fromTemplate(strings, ...values)
 
     const parsed = parser.parse()
+
     const adapter = new TemplateJDOMAdapter(parsed)
     // console.timeEnd("myFunction");
     return adapter.create()

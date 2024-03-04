@@ -10,36 +10,46 @@ export default class TemplateDOMAdapter {
         let el;
         let svg = false
 
-        if (typeof conf.tag === 'function') {
-            const elAttribs = {}
 
-            if (conf.body.length > 0) {
-                elAttribs.$slot = (new TemplateDOMAdapter(conf.body)).create(svg)
-            }
 
-            for (const [key, value] of conf.attributes) {
-                if (key === ':bind') {
-                    elAttribs.value = value
-                } else {
-                    elAttribs[key] = value
+        if (typeof conf.tag === 'string') {
+            if (typeof conf.tag === 'string' && conf.tag.toLowerCase() === '!doctype')
+                return null
+
+            if (conf.tag === 'svg' || this.inSVG) {
+                el = document.createElementNS('http://www.w3.org/2000/svg', conf.tag)
+                svg = true
+            } else if (conf.tag.includes('-') && window?.customElements) {
+                const customElement = window.customElements.get(conf.tag)
+                if (customElement) {
+                    el = new customElement()
                 }
             }
+        } else if (conf.tag instanceof Node) {
+            el = conf.tag
+        } else if (conf.tag instanceof JDOM) {
+            el = conf.tag.firstNode()
+        } else if (typeof conf.tag === 'function') {
+            if (conf.tag.prototype && conf.tag.prototype instanceof HTMLElement) {
+                el = new conf.tag()
+            } else {
+                const elAttribs = {}
 
-            const newEl = conf.tag(elAttribs)
+                if (conf.body.length > 0) {
+                    elAttribs.$slot = (new TemplateDOMAdapter(conf.body)).create(svg)
+                }
 
-            return this.createFromValue({value: newEl})
-        }
+                for (const [key, value] of conf.attributes) {
+                    if (key === ':bind') {
+                        elAttribs.value = value
+                    } else {
+                        elAttribs[key] = value
+                    }
+                }
 
-        if (conf.tag.toLowerCase() === '!doctype')
-            return null
+                const newEl = conf.tag(elAttribs)
 
-        if (conf.tag === 'svg' || this.inSVG) {
-            el = document.createElementNS('http://www.w3.org/2000/svg', conf.tag)
-            svg = true
-        } else if (conf.tag.includes('-') && window?.customElements) {
-            const customElement = window.customElements.get(conf.tag)
-            if (customElement) {
-                el = new customElement()
+                return this.createFromValue({value: newEl})
             }
         }
 

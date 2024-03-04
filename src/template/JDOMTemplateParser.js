@@ -47,18 +47,23 @@ export default class JDOMTemplateParser {
     }
 
     isWhiteSpace(c) {
-        return c === '\n' || c === ' '
+        if (c === undefined) return false
+        if (typeof c !== 'string') return false
+        return c === '\n' || c === ' ' || c === '\t' || c === '\v' || c === '\f'
     }
 
     /**
-     * @return {{attributes: {}, from: number, tag: string, to: number, type: string, body: *[]}}
+     * @return {{attributes: {}, from: number, tag: string, to: number, type: string, body: *[]}|null}
      */
     readTag() {
         let tag = { type: 'element', tag: '', attributes: [], body: [], from: this.index, to: 0 }
         let opened = ''
         let tagNameOpened = true
         let closingTag = false
+        let i = 0
         while (this.hasNext()) {
+            const index = i++
+
             const {type, value} = this.get()
 
             if (!opened) {
@@ -94,38 +99,12 @@ export default class JDOMTemplateParser {
                     opened = true
                 }
             } else if (closingTag) {
-                const next = `</`
-
-                // TODO: Check why -1 is needed
-                if (this.nextIs(next, -1)) {
-                    let isEnding = false
-                    // typeof tag.tag === 'string'
-                    const afterClosingSlash = this.get(this.index + 1)
-                    if (afterClosingSlash.type === 'value') {
-                        if (typeof afterClosingSlash.value === 'function' && afterClosingSlash.value === tag.tag) {
-                            isEnding = true
-                            tag.attributes.slot = tag.body
-                            this.next()
-                        }
-                    } else {
-                        if (!this.nextIs(tag.tag))  {
-                            isEnding = true
-                            this.next(tag.tag.length)
-                        }
-                    }
-
-                    if (isEnding) {
-                        this.next(next.length - 1)
-                        this.skipEmpty()
-                        // Skipping >
-                        this.next()
-                    }
-
-                    break
-                }
+                break
             } else {
-                tag.body = this.readContent()
+                tag.body = this.readContent(['script', 'style'].includes(tag.tag), tag)
                 closingTag = true
+                this.next()
+                break
             }
 
             this.next()
@@ -133,6 +112,40 @@ export default class JDOMTemplateParser {
 
         tag.to = this.index
         return tag
+    }
+
+    isClosingTag(tag, ind = -1) {
+        const index = this.index - ind
+        const next = `</`
+
+        // TODO: Check why -1 is needed
+        if (this.nextIs(next, ind)) {
+            let isEnding = false
+            const afterClosingSlash = this.get(index + 2)
+
+            if (afterClosingSlash.type === 'value') {
+                if (afterClosingSlash.value === tag.tag) {
+                    isEnding = true
+                    tag.attributes.slot = tag.body
+                    this.next()
+                }
+            } else {
+                if (typeof tag.tag === 'string' && !this.nextIs(tag.tag)) {
+                    isEnding = true
+                    this.next(tag.tag.length)
+                }
+            }
+
+            if (isEnding) {
+                this.next(next.length - 1)
+                this.skipEmpty()
+                // Skipping >
+                this.next()
+            }
+
+            return isEnding
+        }
+        return false
     }
 
     readAttributes() {
@@ -189,8 +202,9 @@ export default class JDOMTemplateParser {
                         return true
                     }
                     if (value === '=' || this.isWhiteSpace(value)) {
-                        if (value === '=')
+                        if (value === '=') {
                             return true
+                        }
 
                         let i = this.index
                         while (this.get(i) && this.isWhiteSpace(this.get(i).value)) {
@@ -206,7 +220,7 @@ export default class JDOMTemplateParser {
                 if (name === '>') break
 
                 if (!out.name)
-                    out.name = name
+                    out.name = name.trim()
                 if (doBreak) break
                 hasReadName = true
                 continue
@@ -225,13 +239,22 @@ export default class JDOMTemplateParser {
                     let val = ''
                     let opener = ''
                     let i = 0
+
                     let [{value}] = this.readUntil(({type, value}) => {
                         let doNotAdd = false
 
-                        if (i++ === 0 && (value === '"' || value === "'"))
-                            opener = value
+                        if (i++ === 0) {
+                            if (value === '"' || value === "'")
+                                opener = value
+                            else
+                                opener = ' '
+                        }
 
-                        if (value === opener) {
+                        if (opener === ' ' && (this.isWhiteSpace(value) || value === '>' || this.nextIs('/>'))) {
+                            return true
+                        }
+
+                        if (opener !== ' ' && value === opener) {
                             if (opened) {
                                 return true
                             }
@@ -240,7 +263,8 @@ export default class JDOMTemplateParser {
                         if (!doNotAdd)
                             val += value
                     })
-                    out.value = value.substring(1)
+
+                    out.value = opener === ' ' ? value : value.substring(1)
                     break
                 }
             }
@@ -293,7 +317,7 @@ export default class JDOMTemplateParser {
         return false
     }
 
-    readContent() {
+    readContent(ignoreTags = false, tag = false) {
         const contents = []
         let currentString = ''
         this.skipEmpty()
@@ -301,25 +325,33 @@ export default class JDOMTemplateParser {
             const { type, value } = this.get()
 
             if (type === 'char') {
-                if (value === '<') {
+                if (value === '<' && !this.isWhiteSpace(this.get(this.index + 1)?.value)) {
+                    const currentIndex = this.index
+                    if (tag !== false && this.isClosingTag(tag, 0)) {
+                        break
+                    } else {
+                        this.index = currentIndex
+                        if (ignoreTags) {
+                            currentString += '<'
+                            this.next()
+                            continue
+                        }
+                    }
 
                     if (currentString !== '') {
                         contents.push({type: 'text', value: currentString})
                         currentString = ''
                     }
 
-                    if (this.get(this.index+1)?.value === '/') {
-                        break
-                    }
-
                     if (this.shipComment()) continue
 
-                    contents.push(this.readTag())
+                    const newTag = this.readTag()
+                    if (newTag !== null)
+                        contents.push(newTag)
                     this.skipEmpty()
                     continue
                 }
 
-                currentString += value
             } else {
                 if (currentString !== '') {
                     contents.push({type: 'text', value: currentString})
@@ -329,6 +361,7 @@ export default class JDOMTemplateParser {
                 this.next()
                 continue
             }
+            currentString += value
 
             this.next()
         }
