@@ -104,7 +104,7 @@ export default class TemplateDOMAdapter {
                 }
 
                 if (value instanceof Hook) {
-                    value.listeners.push(() => {
+                    value.addListener(() => {
                         setValue(key, value.value)
                     })
                     setValue(key, value.value)
@@ -130,7 +130,33 @@ export default class TemplateDOMAdapter {
                 elem.value = model.value
             }
 
-            Object.entries(events).forEach(([key, value]) => elem.addEventListener(key, value))
+            for (const [key, value] of Object.entries(events)) {
+                const eventNameParts = key.split('.')
+                const eventName = eventNameParts.shift()
+                let handler = typeof value === 'function' ? value : () => {}
+
+                if (eventNameParts.length > 0) {
+                    const events = []
+                    for (const part of eventNameParts) {
+                        switch (part.toLowerCase()) {
+                            case 'prevent':
+                                events.push(e => e.preventDefault())
+                                break
+                            case 'stop':
+                                events.push(e => e.stopPropagation())
+                                break
+                        }
+                    }
+
+                    const oldHandler = handler
+                    handler = e => {
+                        events.forEach(ev => ev(e))
+                        oldHandler(e)
+                    }
+                }
+
+                elem.addEventListener(eventName, handler)
+            }
             onCreate(elem)
         }
 
