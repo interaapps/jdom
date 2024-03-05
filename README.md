@@ -1,4 +1,4 @@
-# JDOM `3.0.2`
+# JDOM `3.0.4`
 ## A wrapper for query selector and html elements + templating & reactivity framework
 
 - [Installation or embedding](#install)
@@ -27,12 +27,12 @@ npm install jdomjs
 
 ### Module
 ```js
-import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@3.0.2/index.js'
+import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@3.0.4/index.js'
 ```
 
 ### HTML import
 ```js
-<script src="https://cdn.jsdelivr.net/npm/jdom@3.0.2/dist/jdom.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jdom@3.0.4/dist/jdom.js"></script>
 ```
 
 ## DOM Manipulation
