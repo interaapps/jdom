@@ -1,6 +1,24 @@
 # JDOM `3.0.2`
 ## A wrapper for query selector and html elements + templating & reactivity framework
 
+- [Installation or embedding](#install)
+- JDOM
+  - [DOM Manipulation](#dom-manipulation)
+  - [Create Element](#create-element)
+  - [Animator](#animator)
+- [Web-Components](#web-components)
+
+
+- [JDOM-Template](#jdom-template) Create Projects with JS-Template Strings with reactivity
+  - [Reactivity](#reactivity)
+  - [if-conditions](#if-confitions)
+  - [Reactive For-Each](#reactive-for-each)
+  - [Function Components](#reactive-for-each)
+
+
+- [JDOM-Hooks (For JDOM & JDOM-Template)](#jdom-hooks)
+
+
 ## Install
 ### NPM
 ```bash
@@ -17,7 +35,7 @@ import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@3.0
 <script src="https://cdn.jsdelivr.net/npm/jdom@3.0.2/dist/jdom.js"></script>
 ```
 
-## DOM-Modfier Usage
+## DOM Manipulation
 ```js
 const el = $('#a-div')
 
@@ -125,9 +143,18 @@ const myHTML = html`
 
 $(document).append(myHTML)
 
-// Reactivity
+// binding
+const name = state('John')
 
-import { state, html } from 'jdomjs'
+html`
+    name: ${name} <br>
+    <input :bind=${name}>
+`
+```
+
+### Reactivity
+```js
+import { state, html, $ } from 'jdomjs'
 
 const count = state(0)
 
@@ -135,18 +162,31 @@ const button = html`
     <button @click=${() => count.value++}>The count is ${count}</button>
 `
 $(document).append(button)
+```
 
+### if-confitions
+```js
 // if-condition
 html`
+    <!-- Reactive if condition with ternary operator -->
+    ${computed(() => 
+        isEnabled.value 
+            ? html`<div>Now shown!</div>` // If true render this div 
+            : null, // If false render nothing
+    [isEnabled])}
+    
+    <!-- :if attribute -->
     <div :if=${isEnabled} @click=${() => alert('Yo')}>
         Now I'm shown :o
     </div>
-    
-    <!-- Or (Might be interesting for components) -->
-    ${computed(() => isEnabled.value ? html`<div>Now shown!</div>` : null, [isEnabled])}
+    <div :else>
+        Not shown :(
+    </div>
+    <div></div>
 `
-
-// for-each
+```
+### Reactive for-each
+```js
 html`
     ${computed(() => elements.value.map(user => html`
         <div>
@@ -157,14 +197,24 @@ html`
     <button @click=${() => elements.value = [...elements.value, {name: 'Joe'}]}>Add Element</button>
 `
 
-// binding
-const name = state('John')
-
+// Or use Helper-Component
+import { ForEach } from 'jdomjs/src/template/helper/components.js'
 html`
-    name: ${name} <br>
-    <input :bind=${name}>
+    <${ForEach} 
+        :bind=${elements}
+        :content=${user => html`
+            <div>
+                <span>${user.name}</span>
+            </div>
+        `}
+    />
+    
+    <button @click=${() => elements.value = [...elements.value, {name: 'Joe'}]}>Add Element</button>
 `
+```
 
+### Function-Components
+```js
 // Function components
 function UserLayout({ exampleProp, $slot }) {
     return html`<div class="user-profile">
@@ -177,8 +227,29 @@ html`<${UserLayout} exampleProp="test">
 </${UserLayout}>`
 ```
 
-# Reactivity (JDOM-Hooks)
+### Promise-Handling
 ```js
+const promise = fetch('/user/name') 
+html`${promise.then(r => r.json()).then(u => u.name)}`
+
+// Or use Helper-Component
+import { Awaiting } from 'jdomjs/src/template/helper/components.js'
+
+const promise = fetch('/api/user')
+html`
+    <${Awaiting} 
+        promise=${promise.then(r => r.json())}
+        finished=${user => html`<${User} user=${user} />`}
+        awaiting${html`<${LoadingIndicator} />`}
+        error="Something went wrong"
+    />
+`
+```
+
+# JDOM-Hooks
+```js
+import { state, computed, watch, bind, $, $c, $r, html } from 'jdom'
+
 // Create a state
 const name = state('John')
 
@@ -199,7 +270,7 @@ html`Hello ${name}`
 // computed
 const lowerCaseName = computed(() => {
     return name.value.toLowerCase()
-}, [name]) // <- Dependencies
+}, [name]) // <- Dependencies. The function given will be called if one of the dependencies change
 
 // Helper template-string-tag:
 const greeting = comp`Hello ${name}!`

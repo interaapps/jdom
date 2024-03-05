@@ -1,7 +1,10 @@
 import Hook from './Hook.js'
 import JDOM from '../JDOM.js'
+import { computed } from './hooks.js'
 
 export default class TemplateDOMAdapter {
+    ifQueryParts = []
+
     constructor(parsed) {
         this.parsed = parsed
     }
@@ -9,8 +12,6 @@ export default class TemplateDOMAdapter {
     createElement(conf) {
         let el;
         let svg = false
-
-
 
         if (typeof conf.tag === 'string') {
             if (typeof conf.tag === 'string' && conf.tag.toLowerCase() === '!doctype')
@@ -148,34 +149,33 @@ export default class TemplateDOMAdapter {
             } else if(key === ':bind') {
                 model = value
             } else if(key === ':if') {
-                const savedElement = el
-                const commentElement = document.createComment('JDOM-Templating:if')
-                let lastValue = false
-                const getValue = () => {
-                    lastValue = value instanceof Hook ? value.value : value
-                    return lastValue
-                }
+                let destroy;
+                [el, addChildren, destroy] = this.bindIf(el, value, addChildren, addedChildren, setup)
 
-                if (getValue()) {
-                    el = savedElement
-                } else {
-                    el = commentElement
-                    addChildren = false
-                }
-
-                value.addListener(value => {
-                    if (lastValue === value) return;
-                    lastValue = value
-
-                    if (value) {
-                        this.replaceElement(el, savedElement)
-                        el = savedElement
-                        if (!addedChildren) setup(el)
-                    } else {
-                        this.replaceElement(el, commentElement)
-                        el = commentElement
+                this.ifQueryParts.push(['IF', value, el, [value], destroy])
+            } else if(key === ':else-if') {
+                const [type, state, _, deps] = this.ifQueryParts.pop();
+                const comp = computed(() => {
+                    for (const dep of deps) {
+                        if (dep.value)
+                            return false
                     }
-                })
+                    return value.value
+                }, [value, ...deps])
+
+                let destroy;
+                ;[el, addChildren, destroy] = this.bindIf(el, comp, addChildren, addedChildren, setup)
+
+                this.ifQueryParts.push(['ELSE-IF', comp, el, [...deps, comp], destroy])
+            } else if(key === ':else') {
+                const [type, state, _, deps] = this.ifQueryParts.pop();
+                ;[el, addChildren] = this.bindIf(el, computed(() => {
+                    for (const dep of deps) {
+                        if (dep.value)
+                            return false
+                    }
+                    return true
+                }, [state, ...deps]), addChildren, addedChildren, setup)
             } else if(key === '@:create') {
                 onCreate = value
             } else {
@@ -188,6 +188,44 @@ export default class TemplateDOMAdapter {
         }
 
         return el
+    }
+
+    bindIf(el, state, addChildren = true, addedChildren = false, setup = () => {}) {
+        const savedElement = el
+        const commentElement = document.createComment('JDOM-Templating:if')
+        let lastValue = false
+        const getValue = () => {
+            lastValue = state instanceof Hook ? state.value : state
+            return lastValue
+        }
+
+        if (getValue()) {
+            el = savedElement
+            addedChildren = true
+        } else {
+            el = commentElement
+            addChildren = false
+        }
+
+        let toRepl = el
+        const listener = state.addListener(value => {
+            if (lastValue === value) return;
+            lastValue = value
+
+            if (value) {
+                toRepl = this.replaceElement(toRepl, savedElement)
+                el = savedElement
+                if (!addedChildren) {
+                    setup(el)
+                    addedChildren = true
+                }
+            } else {
+                toRepl = this.replaceElement(toRepl, commentElement)
+                el = commentElement
+            }
+        })
+
+        return [el, addChildren, () => state.removeListener(listener)]
     }
 
     createText({value}) {
@@ -360,6 +398,10 @@ export default class TemplateDOMAdapter {
         const firstEl = replElements.shift()
         const firstEndEl = endElements.shift()
 
+
+        firstEl.dispatchEvent(new CustomEvent('jdom:replace_with', { to }))
+        firstEl.dispatchEvent(new CustomEvent('jdom:detach'))
+        firstEndEl.dispatchEvent(new CustomEvent(':child_attach'))
         firstEl.replaceWith(firstEndEl)
 
         replElements.forEach(e => this.removeElement(e))
@@ -368,29 +410,35 @@ export default class TemplateDOMAdapter {
             this.afterElement(firstEndEl, e)
         })
 
-        firstEl.dispatchEvent(new CustomEvent('jdom:replace_with', { to }))
-        firstEl.dispatchEvent(new CustomEvent('jdom:detach'))
-        firstEndEl.dispatchEvent(new CustomEvent('jdom:child_attached'))
+        firstEl.dispatchEvent(new CustomEvent('jdom:replaced_with', { to }))
+        firstEl.dispatchEvent(new CustomEvent('jdom:detached'))
+        firstEndEl.dispatchEvent(new CustomEvent(':child_attached'))
 
         return finalEnd
     }
 
     appendElement(to, el) {
-        to.dispatchEvent(new CustomEvent('jdom:child_attached'))
-        el.dispatchEvent(new CustomEvent('jdom:attach'))
+        to.dispatchEvent(new CustomEvent(':child_attach'))
+        el.dispatchEvent(new CustomEvent(':attach'))
         to.append(el)
+        to.dispatchEvent(new CustomEvent(':child_attached'))
+        el.dispatchEvent(new CustomEvent(':attached'))
     }
 
     afterElement(to, el) {
-        to.dispatchEvent(new CustomEvent('jdom:child_added_after'))
-        el.dispatchEvent(new CustomEvent('jdom:attach'))
+        to.dispatchEvent(new CustomEvent(':child_attach_after'))
+        el.dispatchEvent(new CustomEvent(':attach'))
         to.after(el)
+        to.dispatchEvent(new CustomEvent(':child_attached_after'))
+        el.dispatchEvent(new CustomEvent(':attached'))
     }
 
     beforeElement(to, el) {
-        to.dispatchEvent(new CustomEvent('jdom:child_added_before'))
-        el.dispatchEvent(new CustomEvent('jdom:attach'))
+        to.dispatchEvent(new CustomEvent(':child_attach_before'))
+        el.dispatchEvent(new CustomEvent(':attach'))
         to.before(el)
+        to.dispatchEvent(new CustomEvent(':child_attached_before'))
+        el.dispatchEvent(new CustomEvent(':attached'))
     }
 
     create(inSVG = false) {
