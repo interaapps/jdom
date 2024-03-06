@@ -5,14 +5,14 @@
   "main": "./index.js",
 
   "exports": {
+    ".": "./index.js",
     "./JDOM.js": "./src/JDOM.js",
     "./JDOMComponent.js": "./src/JDOMComponent.js",
     "./hooks.js": "./src/hooks.js",
     "./decorators.ts": "./src/decorators.ts",
     "./Hook.js": "./src/Hook.js",
     "./templpate/": "./src/template/",
-    "./router/": "./src/router/",
-    "./*": "./*"
+    "./router/": "./src/router/"
   },
 
   "scripts": {
