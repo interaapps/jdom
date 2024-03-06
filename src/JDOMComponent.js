@@ -7,6 +7,8 @@ export default class JDOMComponent extends HTMLElement {
      */
     mainElement = null
 
+    #jdomConnectedAlready = false
+
     constructor(options = {}) {
         super()
         this.options = options
@@ -14,18 +16,24 @@ export default class JDOMComponent extends HTMLElement {
         this.registerAttributeListener()
     }
 
-    connectedCallback() {
+    async connectedCallback() {
+        if (this.#jdomConnectedAlready)
+            return;
+
+        this.#jdomConnectedAlready = true
+
         const { shadowed = true, style = null } = this.options
         this.registerAttributeListener()
 
         this.mainElement = this
+
         if (shadowed) {
             this.mainElement = this.attachShadow({mode: 'closed'})
-            const content = this.render()
+        }
 
-            if (content) {
-                new JDOM(this.mainElement).append(content)
-            }
+        const content = await this.render() // It may be async
+        if (content) {
+            new JDOM(this.mainElement).append(content)
         }
 
         if (style) {
@@ -40,7 +48,7 @@ export default class JDOMComponent extends HTMLElement {
         new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 if (mutation.type === 'attributes') {
-                    this.dispatchEvent(new CustomEvent(':attributechanged', { detail: { mutation } }))
+                    this.dispatchEvent(new CustomEvent(':attributechanged', {detail: {mutation}}))
                 }
             })
         }).observe(this, {

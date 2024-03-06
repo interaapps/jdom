@@ -31,7 +31,7 @@ declare class JDOM {
      * @param {Object} options
      * @return {JDOMComponent}
      */
-    static component(component: (arg0: JDOM, arg1: JDOMComponent) => any, options?: any): JDOMComponent;
+    static component(component: (arg0: JDOM, arg1: JDOMComponent) => any, options?: Object): JDOMComponent;
     /**
      * Registers a webcomponent
      *
@@ -69,7 +69,7 @@ declare class JDOM {
      */
     elem: Node[];
     hooks: {};
-    $: (selector: any) => JDOM;
+    $: (selector: any) => JDOM | null;
     /**
      * @param {function(JDOM)} callable
      * @return {JDOM}
@@ -152,7 +152,7 @@ declare class JDOM {
     /**
      * @return {Object}
      */
-    getAttributes(): any;
+    getAttributes(): Object;
     /**
      * @param {HTMLAttributes} name
      * @param {string|Hook} val
@@ -221,7 +221,7 @@ declare class JDOM {
      * @param {any} val
      * @return {JDOM}
      */
-    val(value?: any): JDOM;
+    val(value?: undefined): JDOM;
     /**
      * @param {Hook} hook
      * @return {JDOM}
@@ -232,7 +232,7 @@ declare class JDOM {
      * @param value
      * @return {*|null|JDOM}
      */
-    setOrGetProperty(name: any, value?: any): any | null | JDOM;
+    setOrGetProperty(name: any, value?: undefined): any | null | JDOM;
     /**
      * @param {string} val
      * @return {*|JDOM|null}
@@ -312,7 +312,7 @@ declare class JDOM {
      * @param {Object} events
      * @return {JDOM}
      */
-    bind(events?: any): JDOM;
+    bind(events?: Object): JDOM;
     /**
      * @param {function(PointerEvent)|undefined} callable
      * @return {JDOM}

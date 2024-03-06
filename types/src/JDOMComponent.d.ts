@@ -5,10 +5,10 @@ export default class JDOMComponent extends HTMLElement {
      */
     mainElement: ShadowRoot | Node;
     options: {};
-    connectedCallback(): void;
+    connectedCallback(): Promise<void>;
     registerAttributeListener(): void;
     addAttributeListener(key: any, options?: {}): void;
-    attributeListeners: any[];
+    attributeListeners: any[] | undefined;
     /**
      * @param {string} style
      */
@@ -21,5 +21,6 @@ export default class JDOMComponent extends HTMLElement {
      * @return {string|undefined}
      */
     styles(): string | undefined;
+    #private;
 }
 import JDOM from './JDOM.js';

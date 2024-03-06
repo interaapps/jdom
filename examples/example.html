@@ -21,6 +21,55 @@
     import Hook from "../src/Hook.js";
     import { ForEach, Awaiting } from "../src/template/helper/components.js";
 
+    const a = state(['asc', 'asd'])
+
+    watch([a], () => console.log(a.value))
+
+    html`
+        <button @click=${()=> a.value = typeof a.value === 'string' ? ['a', 'b', 'c'] : 'Hallo'}>Toggle</button>
+
+        ${a}
+
+    `.appendTo(document)
+
+    /*
+    const paste = fetch(`https://pastefy.app/api/v2/paste/9XH0KD7g`)
+        .then(r => r.json())
+        .then(r => JSON.parse(r.content))
+
+    function a({name, contents}) {
+        console.log(name, contents)
+        return html`
+            <h1  ${{name}}>${name}</h1>
+            <pre ${{name}}>${contents}</pre>
+        `
+    }
+
+    html`
+        <h1>Test</h1>
+
+        ${computed(() => [
+            [
+                $n('h2').text('yo'),
+                $n('h2').text('yo2')
+            ],
+            $n('h2').text('yo3'),
+            $n('h2').text('yo4')
+        ])}
+
+
+        <${Awaiting}
+                promise=${paste}
+                finished=${r => html`<${ForEach}
+                    value=${r}
+                    content=${a}}
+                >`}
+                error=${e => `Error while loading: ${e}`}
+        />
+    `.appendTo(document)
+
+
+
     function showDialog() {
         // language = css
         const dialog = html`
@@ -52,6 +101,8 @@
         },
     ]);
 
+    watch([elements], v => console.log(v))
+
     function waitforme() {
         return new Promise((res) => {
             setTimeout(() => {
@@ -70,6 +121,7 @@
     const prom = waitforme();
 
     html`
+
         <${ForEach}
             :bind=${list}
             content=${(value, index) => {
@@ -165,6 +217,7 @@
         >
             Add Element
         </button>
+
     `;
 
     console.log(myHTML);

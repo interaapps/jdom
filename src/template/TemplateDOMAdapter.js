@@ -294,35 +294,20 @@ export default class TemplateDOMAdapter {
             let removeEl = () => {}
             let outputElement = null
 
+            let stateListener
+
             const hookListener = state.addListener(val => {
                 if (!(isArray && Array.isArray(val) || !isArray && !Array.isArray(val))) {
                     if (outputElement) {
-                        let elements = this.createFromValue({value})
-                        if (!Array.isArray(elements)) {
-                            elements = [elements]
-                        }
-
-                        if (elements.length > 0) {
-                            const newElements = []
-                            removeEl = () => {
-                                newElements.forEach(e => this.removeElement(e))
-                            }
-                            const firstEl = elements.shift()
-                            this.replaceElement(outputElement, firstEl)
-
-                            for (const item of elements) {
-                                this.beforeElement(firstEl, item)
-                                newElements.push(item)
-                            }
-                        } else {
-                            removeEl()
-                        }
+                        this.replaceElement(outputElement, this.createFromValue({value}))
                         value.removeListener(hookListener)
+
+                        if (stateListener) {
+                            state.removeListener(stateListener)
+                        }
                     }
                 }
             })
-
-            let stateListener
 
             if (isArray) {
                 const comment = document.createComment('JDOM-Templating:arrhook')
@@ -331,7 +316,7 @@ export default class TemplateDOMAdapter {
                 let elements = []
 
                 removeEl = () => elements.forEach(e => e.forEach(i => this.removeElement(i)))
-                const setElements = (prepend = true) => {
+                const setElements = () => {
                     for (const item of elements) {
                         item.elements.forEach(e => this.removeElement(e))
                         elements = elements.filter(e => e !== item)
@@ -344,18 +329,18 @@ export default class TemplateDOMAdapter {
                         return
                     }
 
+                    let lastEl = comment
                     for (const item of state.value) {
                         let itemEls = this.createFromValue({value: item})
                         if (!Array.isArray(itemEls))
                             itemEls = [itemEls]
 
-                        elements.push({
+                        elements = [...elements, {
                             key: ++i,
                             elements: itemEls
-                        })
+                        }]
 
-                        if (prepend)
-                            itemEls.forEach(e => this.beforeElement(comment, e))
+                        itemEls.forEach(e => lastEl = this.afterElement(lastEl, e))
                     }
                 }
 
@@ -363,13 +348,14 @@ export default class TemplateDOMAdapter {
                     setElements()
                 })
 
-                setElements(false)
+                setElements()
 
-                const out = []
+                let out = []
+
                 for (const item of elements) {
-                    item.elements.forEach(e => out.push(e))
+                    item.elements.forEach(e => out = [...out, e])
                 }
-                return [...out, comment]
+                return [comment, ...out]
             } else if (typeof state.value === 'string' || typeof state.value === 'number' || typeof state.value === 'boolean') {
                 outputElement = this.createText({value: state.value})
 
@@ -385,7 +371,7 @@ export default class TemplateDOMAdapter {
             } else {
                 outputElement = this.createFromValue({value: state.value})
 
-                state.addListener(() => {
+                stateListener = state.addListener(() => {
                     let element = this.createFromValue({value: state.value})
 
                     outputElement = this.replaceElement(outputElement, element)
@@ -457,8 +443,9 @@ export default class TemplateDOMAdapter {
 
         replElements.forEach(e => this.removeElement(e))
 
+        let lastEl = firstEndEl
         endElements.forEach(e => {
-            this.afterElement(firstEndEl, e)
+            lastEl = this.afterElement(lastEl, e)
         })
 
         firstEl.dispatchEvent(new CustomEvent('jdom:replaced_with', { to }))
@@ -482,6 +469,7 @@ export default class TemplateDOMAdapter {
         to.after(el)
         to.dispatchEvent(new CustomEvent(':child_attached_after'))
         el.dispatchEvent(new CustomEvent(':attached'))
+        return el
     }
 
     beforeElement(to, el) {

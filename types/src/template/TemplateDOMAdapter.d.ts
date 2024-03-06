@@ -14,8 +14,8 @@ export default class TemplateDOMAdapter {
     removeElement(el: any): void;
     replaceElement(from: any, to: any): any[];
     appendElement(to: any, el: any): void;
-    afterElement(to: any, el: any): void;
+    afterElement(to: any, el: any): any;
     beforeElement(to: any, el: any): void;
     create(inSVG?: boolean): any[];
-    inSVG: boolean;
+    inSVG: boolean | undefined;
 }

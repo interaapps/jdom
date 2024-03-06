@@ -3,9 +3,9 @@ export function ForEach({ value, content }: {
     content: any;
 }): Hook<any>;
 export function Awaiting({ promise, awaiting, finished, error }: {
-    promise?: any;
-    awaiting?: any;
-    finished?: any;
-    error?: any;
+    promise?: null | undefined;
+    awaiting?: null | undefined;
+    finished?: null | undefined;
+    error?: null | undefined;
 }): Hook<any>;
 import Hook from '../../Hook.js';

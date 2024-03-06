@@ -15,7 +15,6 @@ export default class Hook {
     constructor(value) {
         this.setValue(value)
 
-
         return new Proxy(this, {
             get: (target, prop)  => {
                 if (Object.hasOwn(target, prop) || prop in target || prop === 'value') {

@@ -10,10 +10,10 @@ interface Task {
 @CustomElement('todo-app')
 class ToDoApp extends JDOMComponent {
     @State()
-    private tasks: Hook<Task> = [];
+    private tasks = new Hook<Task[]>([]);
 
     @State()
-    private newTaskText: Hook<String> = '';
+    private newTaskText = new Hook<String>('');
 
     constructor() {
         super();
@@ -21,19 +21,19 @@ class ToDoApp extends JDOMComponent {
 
     addTask() {
         if (this.newTaskText.value.trim()) {
-            this.tasks = [...this.tasks.value, { text: this.newTaskText.value.trim(), done: false }];
-            this.newTaskText = ''; // Clear input field
+            this.tasks.value = [...this.tasks.value, { text: this.newTaskText.value.trim(), done: false }];
+            this.newTaskText.value = ''; // Clear input field
         }
     }
 
     toggleDone(index: number) {
-        this.tasks = this.tasks.value.map((task, i) =>
+        this.tasks.value = this.tasks.value.map((task, i) =>
             index === i ? { ...task, done: !task.done } : task
         );
     }
 
     removeTask(index: number) {
-        this.tasks = this.tasks.value.filter((_, i) => i !== index);
+        this.tasks.value = this.tasks.value.filter((_, i) => i !== index);
     }
 
     @Computed(s => [s.tasks])

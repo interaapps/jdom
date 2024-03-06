@@ -28,7 +28,7 @@ export default class JDOMTemplateParser {
         to: number;
         type: string;
         body: any[];
-    };
+    } | null;
     isClosingTag(tag: any, ind?: number): boolean;
     readAttributes(): (string | boolean)[][];
     readAttribute(): {

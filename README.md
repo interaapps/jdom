@@ -140,11 +140,11 @@ import {CustomElement, State, Attribute} from "jdomjs/decorator.ts";
 @CustomElement('example-component')
 class ExampleComponent extends JDOMComponent {
   @State()
-  private name: Hook<String> = 'John'
+  private name = new Hook<String>('John')
 
   @State()
   @Attribute({ name: 'last-name' })
-  private lastName: Hook<String> = 'default'
+  private lastName = new Hook<String>('default')
 
   @Computed(s => [s.name])
   private greetings() {

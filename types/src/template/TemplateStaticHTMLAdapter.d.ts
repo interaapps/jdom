@@ -2,7 +2,7 @@ export default class TemplateStaticHTMLAdapter {
     constructor(parsed: any);
     parsed: any;
     getValue(val: any): any;
-    createElement(conf: any): string;
+    createElement(conf: any): string | null;
     escapeHtml(unsafe: any): any;
     createText({ value }: {
         value: any;
