@@ -108,7 +108,7 @@ export default class JDOMComponent extends HTMLElement {
     /**
      * @return {string|undefined}
      */
-    style() {
+    styles() {
         return undefined
     }
 }
