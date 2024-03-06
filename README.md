@@ -134,45 +134,57 @@ $r('my-component', MyComponent)
 # Typescript Class-Component
 
 ```ts
-import { html, JDOMComponent } from 'jdomjs' 
-import { CustomElement, State } from "jdomjs/decorator.ts";
+import {html, JDOMComponent} from 'jdomjs'
+import {CustomElement, State, Attribute} from "jdomjs/decorator.ts";
 
 @CustomElement('example-component')
 class ExampleComponent extends JDOMComponent {
-    @State()
-    private name: Hook<String> = 'John'
-  
-    @Computed(s => [s.name])
-    private greetings() {
-        return comp`Hello ${this.name}`
-    }
-  
-    render() {
-          return html`
+  @State()
+  private name: Hook<String> = 'John'
+
+  @State()
+  @Attribute({ name: 'last-name' })
+  private lastName: Hook<String> = 'default'
+
+  @Computed(s => [s.name])
+  private greetings() {
+    return comp`Hello ${this.name}`
+  }
+
+  render() {
+    return html`
             <input :bind=${this.name}>
             <h1>${this.greetings}</h1>
           `
-    }
+  }
 }
 ```
 
 # Javascript Class-Component
+
 ```ts
-import { html, JDOMComponent, $r } from 'jdomjs'
+import {html, JDOMComponent, $r} from 'jdomjs'
 
 class ExampleComponent extends JDOMComponent {
-    private name = new Hook('John')
-  
-    private greetings() {
-        return comp`Hello ${this.name}`
-    }
-  
-    render() {
-          return html`
+  private name = new Hook('John')
+
+  private lastName = new Hook('default')
+
+  constructor() {
+    super();
+    this.addAttributeListener('lastName', { name: 'last-name' })
+  }
+
+  private greetings() {
+    return comp`Hello ${this.name}`
+  }
+
+  render() {
+    return html`
             <input :bind=${this.name}>
             <h1>${this.greetings()}</h1>
           `
-    }
+  }
 }
 
 $r('example-component', ExampleComponent)

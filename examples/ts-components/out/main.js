@@ -104,9 +104,11 @@ class JDOMComponent extends HTMLElement {
   constructor(options = {}) {
     super();
     this.options = options;
+    this.registerAttributeListener();
   }
   connectedCallback() {
     const { shadowed = true, style = null } = this.options;
+    this.registerAttributeListener();
     this.mainElement = this;
     if (shadowed) {
       this.mainElement = this.attachShadow({ mode: "closed" });
@@ -118,9 +120,55 @@ class JDOMComponent extends HTMLElement {
     if (style) {
       this.addStyle(style);
     }
-    let styleFromFunc = this.style();
+    let styleFromFunc = this.styles();
     if (styleFromFunc)
       this.addStyle(styleFromFunc);
+    new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "attributes") {
+          this.dispatchEvent(new CustomEvent(":attributechanged", { detail: { mutation } }));
+        }
+      });
+    }).observe(this, {
+      attributes: true
+    });
+  }
+  registerAttributeListener() {
+    if (this.attributeListeners) {
+      for (let attributeListener of this.attributeListeners) {
+        const { key, options: { name = null } } = attributeListener;
+        const attrName = name || key;
+        if (this[key] instanceof Hook) {
+          this[key].value = this.getAttribute(attrName);
+        } else {
+          this[key] = this.getAttribute(attrName);
+        }
+        let lastListener = null;
+        this.addEventListener(":attributechanged", (e) => {
+          const { detail: { mutation } } = e;
+          if (!lastListener) {
+            lastListener = this[key].addListener((val) => {
+              this.setAttribute(attrName, val);
+            });
+          }
+          if (mutation.attributeName === attrName) {
+            const attrVal = this.getAttribute(attrName);
+            if (this[key] instanceof Hook) {
+              if (this[key].value !== attrVal) {
+                this[key].value = attrVal;
+              }
+            } else {
+              this[key] = attrVal;
+            }
+          }
+        });
+      }
+    }
+  }
+  addAttributeListener(key, options = {}) {
+    if (!this.attributeListeners)
+      this.attributeListeners = [];
+    this.attributeListeners.push({ key, options });
   }
   addStyle(style) {
     const styleEl = document.createElement("style");
@@ -1501,37 +1549,16 @@ function css(strings, ...values) {
   }
   return out;
 }
-function comp(strings, ...values) {
-  return computed(() => {
-    let out = "";
-    let i = 0;
-    for (const str of strings) {
-      out += str;
-      if (values[i]) {
-        const value = values[i];
-        if (value instanceof Hook) {
-          out += value.value;
-        }
-      }
-      i++;
-    }
-    return out;
-  }, values.filter((v) => v instanceof Hook));
-}
 
 // /Users/juliangojani/dev/jdom/index.js
-var $ = (el, parent = undefined) => new JDOM6(el, parent);
 var $n = JDOM_default.new;
 var $c = JDOM_default.component;
 var $r = JDOM_default.registerComponent;
 var $h = JDOM_default.fromHTML;
 var $escHTML = JDOM_default.escapeHTML;
-var JDOM6 = JDOM_default;
 var html2 = html;
 var css2 = css;
-var comp2 = comp;
 var JDOMComponent6 = JDOMComponent;
-var computed2 = computed;
 
 // /Users/juliangojani/dev/jdom/src/decorators.ts
 function State() {
@@ -1550,17 +1577,15 @@ function State() {
 function Computed(dependencies) {
   return function(target, key) {
     const func = target[key];
-    let deps;
-    if (typeof dependencies === "function") {
-      deps = dependencies(target);
-    } else {
-      deps = dependencies.map((d) => target[d]);
-    }
-    const hook = computed(() => {
-      return func.call(target);
-    }, deps);
+    const deps = typeof dependencies === "function" ? dependencies(target) : dependencies.map((d) => target[d]);
+    let hook;
     return {
       get() {
+        if (!hook) {
+          hook = computed(() => {
+            return func.call(target);
+          }, deps);
+        }
         return hook;
       }
     };
@@ -1591,6 +1616,16 @@ class ToDoApp extends JDOMComponent6 {
   removeTask(index) {
     this.tasks = this.tasks.value.filter((_, i) => i !== index);
   }
+  tasksList() {
+    return this.tasks.value.map((task, index) => html2`
+            <li class=${{ done: task.done }}>
+                <span @click=${() => this.toggleDone(index)}>
+                    ${task.text}
+                </span>
+                <button @click=${() => this.removeTask(index)}>Remove</button>
+            </li>
+        `);
+  }
   render() {
     return html2`
             <div id="todo-app">
@@ -1598,14 +1633,7 @@ class ToDoApp extends JDOMComponent6 {
                        @keyup=${(e) => e.key === "Enter" && this.addTask()} />
                 <button @click=${this.addTask.bind(this)}>Add Task</button>
                 <ul>
-                    ${computed2(() => this.tasks.value.map((task, index) => html2`
-                        <li class="${task.done ? "done" : ""}">
-                            <span @click=${() => this.toggleDone(index)}>
-                                ${task.text}
-                            </span>
-                            <button @click=${() => this.removeTask(index)}>Remove</button>
-                        </li>
-                    `), [this.tasks])}
+                    ${this.tasksList}
                 </ul>
             </div>
         `;
@@ -1629,33 +1657,9 @@ __legacyDecorateClassTS([
 __legacyDecorateClassTS([
   State()
 ], ToDoApp.prototype, "newTaskText", undefined);
+__legacyDecorateClassTS([
+  Computed((s) => [s.tasks])
+], ToDoApp.prototype, "tasksList", null);
 ToDoApp = __legacyDecorateClassTS([
   CustomElement("todo-app")
 ], ToDoApp);
-$(document).append(new ToDoApp);
-
-class ExampleComponent extends JDOMComponent6 {
-  constructor() {
-    super(...arguments);
-    this.name = "Hello World";
-  }
-  greetings() {
-    return comp2`Hello ${this.name}`;
-  }
-  render() {
-    return html2`
-            <h1>${this.greetings}</h1>
-            <input :bind=${this.name}>
-          `;
-  }
-}
-__legacyDecorateClassTS([
-  State()
-], ExampleComponent.prototype, "name", undefined);
-__legacyDecorateClassTS([
-  Computed((s) => [s.name])
-], ExampleComponent.prototype, "greetings", null);
-ExampleComponent = __legacyDecorateClassTS([
-  CustomElement("example-component")
-], ExampleComponent);
-$(document).append(new ExampleComponent);

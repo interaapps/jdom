@@ -1,5 +1,5 @@
 import {JDOMComponent, $, html, css, computed, comp} from '../../index.js';
-import {Computed, CustomElement, State} from '../../src/decorators.ts';
+import {Attribute, Computed, CustomElement, State, Watch} from '../../src/decorators';
 import Hook from "../../src/Hook";
 
 interface Task {
@@ -36,21 +36,30 @@ class ToDoApp extends JDOMComponent {
         this.tasks = this.tasks.value.filter((_, i) => i !== index);
     }
 
+    @Computed(s => [s.tasks])
+    tasksList() {
+        return this.tasks.value.map((task, index) => html`
+            <li class=${{ 'done': task.done }}>
+                <span @click=${() => this.toggleDone(index)}>
+                    ${task.text}
+                </span>
+                <button @click=${() => this.removeTask(index)}>Remove</button>
+            </li>
+        `)
+    }
+
     render() {
         return html`
             <div id="todo-app">
-                <input type="text" placeholder="Add a new task" :bind=${this.newTaskText}
-                       @keyup=${(e: KeyboardEvent) => e.key === 'Enter' && this.addTask()} />
+                <input 
+                    type="text" 
+                    placeholder="Add a new task" 
+                    :bind=${this.newTaskText}
+                    @keyup=${(e: KeyboardEvent) => e.key === 'Enter' && this.addTask()}
+                />
                 <button @click=${this.addTask.bind(this)}>Add Task</button>
                 <ul>
-                    ${computed(() => this.tasks.value.map((task, index) => html`
-                        <li class="${task.done ? 'done' : ''}">
-                            <span @click=${() => this.toggleDone(index)}>
-                                ${task.text}
-                            </span>
-                            <button @click=${() => this.removeTask(index)}>Remove</button>
-                        </li>
-                    `), [this.tasks])}
+                    ${this.tasksList}
                 </ul>
             </div>
         `;
@@ -69,25 +78,3 @@ class ToDoApp extends JDOMComponent {
         `;
     }
 }
-
-$(document).append(new ToDoApp());
-
-@CustomElement('example-component')
-class ExampleComponent extends JDOMComponent {
-    @State()
-    private name: Hook<String> = 'Hello World'
-
-    @Computed(s => [s.name])
-    private greetings() {
-        return comp`Hello ${this.name}`
-    }
-
-    render() {
-        return html`
-            <h1>${this.greetings}</h1>
-            <input :bind=${this.name}>
-          `
-    }
-}
-
-$(document).append(new ExampleComponent())

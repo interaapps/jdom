@@ -1,4 +1,4 @@
-import { state as _state, computed as _computed, bind as _bind } from './hooks.js'
+import { state as _state, computed as _computed, watch as _watch, bind as _bind } from './hooks.js'
 import Hook from "./Hook.js";
 
 export function State() {
@@ -20,22 +20,32 @@ export function Computed(dependencies: string[]|Function) {
     return function(target: any, key: string) {
         const func = target[key];
 
-        let deps: Hook[];
-        if (typeof dependencies === 'function') {
-            deps = dependencies(target)
-        } else {
-            deps = dependencies.map(d => target[d])
-        }
+        const deps: Hook[] = typeof dependencies === 'function' ? dependencies(target) : dependencies.map(d => target[d]);
 
-        const hook = _computed(() => {
-            return func.call(target)
-        }, deps)
+        let hook;
 
         return {
             get() {
+                if (!hook) {
+                    hook = _computed(() => {
+                        return func.call(target)
+                    }, deps)
+                }
                 return hook;
             },
         }
+    }
+}
+
+export function Watch(dependencies: string[]|Function) {
+    return function(target: any, key: string) {
+        const func = target[key];
+
+        const deps: Hook[] = typeof dependencies === 'function' ? dependencies(target) : dependencies.map(d => target[d]);
+
+        _watch(deps, () => {
+            return func.call(target)
+        })
     }
 }
 
@@ -45,7 +55,8 @@ export function CustomElement(name: string) {
     }
 }
 
-export function Attribute() {
+export function Attribute(options = {}) {
     return (target: any, key: string) => {
+        target.addAttributeListener(key, options)
     }
 }
