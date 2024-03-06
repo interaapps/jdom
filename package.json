@@ -1,19 +1,17 @@
 {
   "name": "jdomjs",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "A wrapper for query selector and html elements",
-  "main": "index.js",
+  "main": "./index.js",
 
   "exports": {
-    ".": {
-      "JDOM.js": "./src/JDOM.js",
-      "JDOMComponent.js": "./src/JDOMComponent.js",
-      "hooks.js": "./src/hooks.js",
-      "decorators.ts": "./src/decorators.ts",
-      "Hook.js": "./src/Hook.js",
-      "templpate/": "./src/template/",
-      "router/": "./src/router/"
-    },
+    "./JDOM.js": "./src/JDOM.js",
+    "./JDOMComponent.js": "./src/JDOMComponent.js",
+    "./hooks.js": "./src/hooks.js",
+    "./decorators.ts": "./src/decorators.ts",
+    "./Hook.js": "./src/Hook.js",
+    "./templpate/": "./src/template/",
+    "./router/": "./src/router/",
     "./*": "./*"
   },
 
