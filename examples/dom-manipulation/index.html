@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+
+    <div id="todo-app">
+        <input type="text" id="new-task" placeholder="Add a new task and press Enter"/>
+        <button id="add-task">Add Task</button>
+        <ul id="tasks-list"></ul>
+    </div>
+
+    <script type="module">
+        import { $, $n, html } from '../../index.js';
+
+        // Function to create a new task item
+        function createTask(text) {
+            const li = $n('li').text(text);
+
+            const button = $n('button')
+                .text('Remove')
+                .click(() => li.remove());
+
+            li.append(button);
+
+            return li;
+        }
+
+        // Adding a task
+        function addTask() {
+            const input = $('#new-task');
+            const taskText = input.val().trim();
+
+            if (taskText) {
+                const tasksList = $('#tasks-list');
+                tasksList.append(
+                    createTask(taskText)
+                );
+
+                input.val(''); // Clear input after adding
+            }
+        }
+
+        // Binding actions
+        $('#add-task').click(addTask);
+        $('#new-task').on('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+    </script>
+
+</body>
+</html>

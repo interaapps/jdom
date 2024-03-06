@@ -1,7 +1,7 @@
 import JDOMTemplateParser from './JDOMTemplateParser.js'
 import TemplateJDOMAdapter from './TemplateJDOMAdapter.js'
-import { computed } from '../../index.js'
-import Hook from './Hook.js'
+import { computed } from '../hooks.js'
+import Hook from '../Hook.js'
 
 /**
  * Usage: html`<h1>Hello ${name}</h1>`
@@ -19,6 +19,19 @@ export function html(strings, ...values) {
     const adapter = new TemplateJDOMAdapter(parsed)
     // console.timeEnd("myFunction");
     return adapter.create()
+}
+
+export function css(strings, ...values) {
+    let out = ''
+    let i = 0
+    for (const str of strings) {
+        out += str
+        if (values[i]) {
+            out += values[i]
+            i++
+        }
+    }
+    return out
 }
 
 /**

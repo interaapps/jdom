@@ -1,3 +1,7 @@
+/**
+ * @template T
+ * @property {T} value
+ */
 export default class Hook {
     listeners = []
     deleteListeners = []
@@ -5,6 +9,9 @@ export default class Hook {
     #destroyed = false
     #alreadyProxied = false
 
+    /**
+     * @param {T} value
+     */
     constructor(value) {
         this.setValue(value)
 
@@ -65,6 +72,9 @@ export default class Hook {
     }
 
 
+    /**
+     * @param {T} val
+     */
     set value(val) {
         if (this.#destroyed) {
             return undefined
@@ -72,6 +82,9 @@ export default class Hook {
         this.setValue(val)
     }
 
+    /**
+     * @return {T}
+     */
     get value() {
         return this._value
     }

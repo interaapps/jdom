@@ -1,5 +1,7 @@
 import '../html-typedefs.js'
-import Hook from './template/Hook.js'
+import Hook from './Hook.js'
+import JDOMComponent from './JDOMComponent.js'
+import {state} from './hooks.js'
 
 /**
  * @typedef Animation
@@ -395,7 +397,9 @@ class JDOM {
         if (this.hooks.bind) {
             this.hooks.bind[0].removeListener(this.hooks.bind[1])
         }
-        this.hooks.bind = [hook, hook.addListener(val => this.val(val))]
+        this.hooks.bind = [hook, hook.addListener(val => {
+            this.val(val)
+        })]
 
         this.val(hook.value)
 
@@ -663,6 +667,19 @@ class JDOM {
 
 
     /**
+     * @param {function(FocusEvent)|undefined} callable
+     * @return {JDOM}
+     */
+    focus(func) {
+        if (callable === undefined) {
+            return this.eachNodes(el => {
+                el.focus()
+            })
+        }
+        return this.on('focus', func);
+    }
+
+    /**
      * @param {number} index
      * @return {JDOM}
      */
@@ -725,8 +742,6 @@ class JDOM {
     /** @param {function(DragEvent)} func @return {JDOM} */
     drop(func) { return this.on('drop', func); }
     /** @param {function(FocusEvent)} func @return {JDOM} */
-    focus(func) { return this.on('focus', func); }
-    /** @param {function(FocusEvent)} func @return {JDOM} */
     focusout(func) { return this.on('focusout', func); }
     /** @param {function(FocusEvent)} func @return {JDOM} */
     focusin(func) { return this.on('focusin', func); }
@@ -785,45 +800,24 @@ class JDOM {
     /**
      * A helper to create custom elements
      *
-     * @param {function(JDOM, JDOMCustomHTMLElement)} component
+     * @param {function(JDOM, JDOMComponent)} component
      * @param {Object} options
-     * @return {JDOMCustomHTMLElement}
+     * @return {JDOMComponent}
      */
-    static component(component, {shadowed = false, style = undefined} = {}) {
-        return class extends HTMLElement {
-            static get observedAttributes() {
-                return ['value'];
-            }
-
-            addStyle(style) {
-                const styleEl = document.createElement('style')
-                styleEl.textContent = style
-                this.el.appendChild(styleEl)
-            }
+    static component(component, options = {}) {
+        return class extends JDOMComponent {
 
             #value = null
 
-            constructor(...args) {
-                super()
+            constructor() {
+                super(options)
+                this.#value = state(this.value)
+            }
 
-                this.args = args
+            connectedCallback() {
+                super.connectedCallback()
 
-                /**
-                 * @type Element
-                 */
-                this.el = this
-
-                if (shadowed) {
-                    this.el = this.attachShadow({mode: 'closed'});
-                }
-
-                if (style !== undefined) {
-                    this.addStyle(style)
-                }
-
-                this.#value = this.value
-
-                const $el = new JDOM(this.el)
+                const $el = new JDOM(this.mainElement)
 
                 ;(async () => {
                     const res = await component.call(this, $el, this)
@@ -834,12 +828,15 @@ class JDOM {
             }
 
             set value(val) {
-                this.#value = val
+                if (val instanceof Hook)
+                    this.#value = val
+                else
+                    this.#value.value = val
                 this.dispatchEvent(new CustomEvent('input:value'))
             }
 
             get value() {
-                return this.#value
+                return this.#value?.value
             }
         }
     }

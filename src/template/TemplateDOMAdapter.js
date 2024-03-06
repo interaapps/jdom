@@ -1,6 +1,7 @@
-import Hook from './Hook.js'
+import Hook from '../Hook.js'
 import JDOM from '../JDOM.js'
-import { computed } from './hooks.js'
+import { computed } from '../hooks.js'
+import JDOMComponent from '../JDOMComponent.js'
 
 export default class TemplateDOMAdapter {
     ifQueryParts = []
@@ -50,7 +51,7 @@ export default class TemplateDOMAdapter {
 
                 const newEl = conf.tag(elAttribs)
 
-                return this.createFromValue({value: newEl})
+                return this.createFromValue({ value: newEl })
             }
         }
 
@@ -65,6 +66,8 @@ export default class TemplateDOMAdapter {
         const events = {}
         let onCreate = () => {}
         let model = null
+
+        const usingJDOMComponent = el instanceof JDOMComponent
 
         const setup = (elem = el) => {
             addedChildren = true
@@ -100,6 +103,10 @@ export default class TemplateDOMAdapter {
                             return
                         }
                     }
+                    if (usingJDOMComponent) {
+                        elem[key] = value
+                        return
+                    }
                     elem.setAttribute(key, value)
                 }
 
@@ -114,20 +121,27 @@ export default class TemplateDOMAdapter {
             })
 
             if (model) {
-                elem.addEventListener('input', () => {
-                    if (elem.value !== model.value) {
-                        model.value = elem.value
-                    }
-                })
-
-                model.listeners.push(val => {
-                    if (elem.value !== model.value) {
-                        elem.value = val
+                if (usingJDOMComponent) {
+                    elem.value = model
+                    model.addListener(() => {
                         elem.dispatchEvent(new InputEvent('input:value'))
-                    }
-                })
+                    })
+                } else {
+                    elem.addEventListener('input', () => {
+                        if (elem.value !== model.value) {
+                            model.value = elem.value
+                        }
+                    })
 
-                elem.value = model.value
+                    model.listeners.push(val => {
+                        if (elem.value !== model.value) {
+                            elem.value = val
+                            elem.dispatchEvent(new InputEvent('input:value'))
+                        }
+                    })
+
+                    elem.value = model.value
+                }
             }
 
             for (const [key, value] of Object.entries(events)) {
@@ -174,6 +188,14 @@ export default class TemplateDOMAdapter {
                 events[key.substring(1)] = value
             } else if(key === ':bind') {
                 model = value
+            } else if(key === ':html') {
+                const getValue = () => value instanceof Hook ? value.value : value
+                if (value instanceof Hook) {
+                    value.addListener(() => {
+                        el.innerHTML = getValue()
+                    })
+                }
+                el.innerHTML = getValue()
             } else if(key === ':if') {
                 let destroy;
                 [el, addChildren, destroy] = this.bindIf(el, value, addChildren, addedChildren, setup)
@@ -234,24 +256,27 @@ export default class TemplateDOMAdapter {
         }
 
         let toRepl = el
-        const listener = state.addListener(value => {
-            if (lastValue === value) return;
-            lastValue = value
+        let listener;
+        if (state instanceof Hook) {
+            listener = state.addListener(value => {
+                if (lastValue === value) return
+                lastValue = value
 
-            if (value) {
-                toRepl = this.replaceElement(toRepl, savedElement)
-                el = savedElement
-                if (!addedChildren) {
-                    setup(el)
-                    addedChildren = true
+                if (value) {
+                    toRepl = this.replaceElement(toRepl, savedElement)
+                    el = savedElement
+                    if (!addedChildren) {
+                        setup(el)
+                        addedChildren = true
+                    }
+                } else {
+                    toRepl = this.replaceElement(toRepl, commentElement)
+                    el = commentElement
                 }
-            } else {
-                toRepl = this.replaceElement(toRepl, commentElement)
-                el = commentElement
-            }
-        })
+            })
+        }
 
-        return [el, addChildren, () => state.removeListener(listener)]
+        return [el, addChildren, () => listener ? state.removeListener(listener) : null]
     }
 
     createText({value}) {

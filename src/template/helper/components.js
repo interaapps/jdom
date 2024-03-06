@@ -1,5 +1,5 @@
-import Hook from '../Hook.js'
-import { computed, state } from '../hooks.js'
+import Hook from '../../Hook.js'
+import { computed, state } from '../../hooks.js'
 import { html } from '../template.js'
 
 export function ForEach({ value, content }) {

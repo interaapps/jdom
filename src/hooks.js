@@ -1,4 +1,5 @@
 import Hook from './Hook.js'
+import JDOMComponent from './JDOMComponent.js'
 
 
 export function state(initialValue) {
@@ -20,7 +21,7 @@ export function computed(callable, dependencies = []) {
 
 export function watch(hooks, callable) {
     for (let hook of hooks) {
-        hook.listeners.push(callable)
+        hook.addListener(callable)
     }
 }
 
@@ -31,7 +32,7 @@ export function bind(component, attr = 'value') {
         hook.value = component[attr]
     })
 
-    hook.listeners.push(val => {
+    hook.addListener(val => {
         if (component[attr] !== val) {
             component[attr] = hook.value
         }

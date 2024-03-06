@@ -7,7 +7,8 @@
   - [Create Element](#create-element)
   - [Animator](#animator)
 - [Web-Components](#web-components)
-
+- [Typescript Component](#typescript-class-component)
+- [Typescript Component](#javascript-class-component)
 
 - [JDOM-Template](#jdom-template) Create Projects with JS-Template Strings with reactivity
   - [Reactivity](#reactivity)
@@ -128,6 +129,53 @@ const MyComponent = $c((el, component) => {
 // Register component
 $r('my-component', MyComponent)
 </script>
+```
+
+# Typescript Class-Component
+
+```ts
+import { html, JDOMComponent } from 'jdomjs' 
+import { CustomElement, State } from "jdomjs/decorator.ts";
+
+@CustomElement('example-component')
+class ExampleComponent extends JDOMComponent {
+    @State()
+    private name: Hook<String> = 'John'
+  
+    @Computed(s => [s.name])
+    private greetings() {
+        return comp`Hello ${this.name}`
+    }
+  
+    render() {
+          return html`
+            <input :bind=${this.name}>
+            <h1>${this.greetings}</h1>
+          `
+    }
+}
+```
+
+# Javascript Class-Component
+```ts
+import { html, JDOMComponent, $r } from 'jdomjs'
+
+class ExampleComponent extends JDOMComponent {
+    private name = new Hook('John')
+  
+    private greetings() {
+        return comp`Hello ${this.name}`
+    }
+  
+    render() {
+          return html`
+            <input :bind=${this.name}>
+            <h1>${this.greetings()}</h1>
+          `
+    }
+}
+
+$r('example-component', ExampleComponent)
 ```
 
 # JDOM-Template

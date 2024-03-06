@@ -1,4 +1,4 @@
-import Hook from './Hook.js'
+import Hook from '../Hook.js'
 
 export default class TemplateStaticHTMLAdapter {
     constructor(parsed) {

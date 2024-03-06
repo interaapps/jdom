@@ -4,6 +4,19 @@
   "description": "A wrapper for query selector and html elements",
   "main": "index.js",
 
+  "exports": {
+    ".": {
+      "JDOM.js": "./src/JDOM.js",
+      "JDOMComponent.js": "./src/JDOMComponent.js",
+      "hooks.js": "./src/hooks.js",
+      "decorators.ts": "./src/decorators.ts",
+      "Hook.js": "./src/Hook.js",
+      "templpate/": "./src/template/",
+      "router/": "./src/router/"
+    },
+    "./*": "./*"
+  },
+
   "scripts": {
     "build": "webpack --config webpack.config.js"
   },
