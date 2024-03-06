@@ -1,4 +1,4 @@
-# JDOM `3.1.2`
+# JDOM `3.1.3`
 ## A wrapper for query selector and html elements + templating & reactivity framework
 
 - [Installation or embedding](#install)
@@ -28,12 +28,12 @@ npm install jdomjs
 
 ### Module
 ```js
-import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@3.1.2/index.js'
+import { $, $n, $c, $r, $h, JDOM } from 'https://cdn.jsdelivr.net/npm/jdomjs@3.1.3'
 ```
 
 ### HTML import
 ```js
-<script src="https://cdn.jsdelivr.net/npm/jdom@3.1.2/dist/jdom.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jdom@3.1.3/dist/jdom.js"></script>
 ```
 
 ## DOM Manipulation
@@ -258,7 +258,7 @@ html`
 `
 
 // Or use Helper-Component
-import { ForEach } from 'jdomjs/src/template/helper/components.js'
+import { ForEach } from 'jdomjs/template/helper/components.js'
 html`
     <${ForEach} 
         :bind=${elements}
@@ -293,7 +293,7 @@ const promise = fetch('/user/name')
 html`${promise.then(r => r.json()).then(u => u.name)}`
 
 // Or use Helper-Component
-import { Awaiting } from 'jdomjs/src/template/helper/components.js'
+import { Awaiting } from 'jdomjs/template/helper/components.js'
 
 const promise = fetch('/api/user')
 html`

@@ -4,6 +4,8 @@
   "description": "A wrapper for query selector and html elements",
   "main": "./index.js",
 
+  "types": "types/index.d.ts",
+
   "exports": {
     ".": "./index.js",
     "./JDOM.js": "./src/JDOM.js",
@@ -11,8 +13,8 @@
     "./hooks.js": "./src/hooks.js",
     "./decorators.ts": "./src/decorators.ts",
     "./Hook.js": "./src/Hook.js",
-    "./templpate/": "./src/template/",
-    "./router/": "./src/router/"
+    "./template/*": "./src/template/*",
+    "./router/*": "./src/router/*"
   },
 
   "scripts": {

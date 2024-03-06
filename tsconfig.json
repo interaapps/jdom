@@ -1,4 +1,7 @@
 {
+  "include": ["src/**/*"],
+  "allowJs": true,
+
   "compilerOptions": {
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
