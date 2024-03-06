@@ -57,7 +57,7 @@ class ToDoApp extends JDOMComponent {
                     :bind=${this.newTaskText}
                     @keyup=${(e: KeyboardEvent) => e.key === 'Enter' && this.addTask()}
                 />
-                <button @click=${this.addTask.bind(this)}>Add Task</button>
+                <button @click=${() => this.addTask()}>Add Task</button>
                 <ul>
                     ${this.tasksList}
                 </ul>
