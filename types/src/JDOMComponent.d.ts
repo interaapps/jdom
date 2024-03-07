@@ -22,6 +22,10 @@ export default class JDOMComponent extends HTMLElement {
      */
     addAttributeListener(key: any, options?: {}): void;
     attributeListeners: any[] | undefined;
+    detach(): void;
+    detached(): void;
+    attach(): void;
+    attached(): void;
     /**
      * @param {string} style
      */

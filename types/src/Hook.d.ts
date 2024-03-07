@@ -13,7 +13,7 @@ export default class Hook<T> {
      * @param {T} val
      */
     setValue(val: T): void;
-    _value: any;
+    _value: T | undefined;
     /**
      * @param {T} val
      */

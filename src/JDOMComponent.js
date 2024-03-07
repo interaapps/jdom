@@ -35,6 +35,11 @@ export default class JDOMComponent extends HTMLElement {
         if (this.#jdomConnectedAlready)
             return;
 
+        this.addEventListener(':attach', () => this.attach())
+        this.addEventListener(':attached', () => this.attached())
+        this.addEventListener(':detach', () => this.detach())
+        this.addEventListener(':detached', () => this.detached())
+
         this.#jdomConnectedAlready = true
 
         const { shadowed = true, style = null } = this.options
@@ -117,6 +122,11 @@ export default class JDOMComponent extends HTMLElement {
             this.attributeListeners = []
         this.attributeListeners.push({ key, options })
     }
+
+    detach() {}
+    detached() {}
+    attach() {}
+    attached() {}
 
     /**
      * @param {string} style

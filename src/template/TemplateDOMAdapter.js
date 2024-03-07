@@ -438,8 +438,9 @@ export default class TemplateDOMAdapter {
     }
 
     removeElement(el) {
-        el.dispatchEvent(new CustomEvent('jdom:detach'))
+        el.dispatchEvent(new CustomEvent(':detach'))
         el.remove()
+        el.dispatchEvent(new CustomEvent(':detached'))
     }
 
     replaceElement(from, to) {
@@ -455,8 +456,8 @@ export default class TemplateDOMAdapter {
         const firstEndEl = endElements.shift()
 
 
-        firstEl.dispatchEvent(new CustomEvent('jdom:replace_with', { to }))
-        firstEl.dispatchEvent(new CustomEvent('jdom:detach'))
+        firstEl.dispatchEvent(new CustomEvent(':replace_with', { to }))
+        firstEl.dispatchEvent(new CustomEvent(':detach'))
         firstEndEl.dispatchEvent(new CustomEvent(':child_attach'))
         firstEl.replaceWith(firstEndEl)
 
@@ -467,8 +468,8 @@ export default class TemplateDOMAdapter {
             lastEl = this.afterElement(lastEl, e)
         })
 
-        firstEl.dispatchEvent(new CustomEvent('jdom:replaced_with', { to }))
-        firstEl.dispatchEvent(new CustomEvent('jdom:detached'))
+        firstEl.dispatchEvent(new CustomEvent(':replaced_with', { to }))
+        firstEl.dispatchEvent(new CustomEvent(':detached'))
         firstEndEl.dispatchEvent(new CustomEvent(':child_attached'))
 
         return finalEnd

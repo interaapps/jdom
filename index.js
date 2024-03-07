@@ -2,6 +2,7 @@ import _JDOM from './src/JDOM.js'
 import { html as _html, comp as _comp, css as _css } from './src/template/template.js'
 import * as hooks from './src/hooks.js'
 import _JDOMComponent from './src/JDOMComponent.js'
+import _Hook from './src/Hook.js'
 
 /**
  * @param {Node|JDOM|NodeList|string} el
@@ -24,6 +25,7 @@ export const html = _html
 export const css = _css
 export const comp = _comp
 export const JDOMComponent = _JDOMComponent
+export const Hook = _Hook
 
 export const state = hooks.state
 export const watch = hooks.watch

@@ -40,9 +40,15 @@ export default class Hook {
             },
             set: (target, prop, value) => {
                 if (Object.hasOwn(target, prop) || prop in target || prop === 'value') {
+                    if (target[prop] === value)
+                        return;
+
                     return Reflect.set(target, prop, value);
                 }
                 if (typeof target._value === 'object' && !Array.isArray(target._value) && target._value !== null) {
+                    if (target._value[prop] === value)
+                        return;
+
                     return Reflect.set(target._value, prop, value);
                 }
                 return Reflect.set(target, prop, value);
@@ -56,15 +62,15 @@ export default class Hook {
     setValue(val) {
         const old = this._value
         this._value = val
-        if (typeof val === 'object' && !Array.isArray(val) && val !== null) {
-            this._value = this.#createObserver(val)
-        }
         this.dispatchListener(old)
     }
 
     #createObserver(val) {
         return new Proxy(val, {
             set: (target, prop, value) => {
+                if (val === val[prop])
+                    return;
+
                 val[prop] = value
                 this.setValue(val)
 
