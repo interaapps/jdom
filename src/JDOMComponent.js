@@ -1,14 +1,29 @@
 import JDOM from './JDOM.js'
 import Hook from './Hook.js'
 
+/**
+ * @typedef JDOMComponentOptions
+ * @property {boolean} shadowed
+ * @property {string|null} styles
+ */
+
+/**
+ * @typedef AttributeOptions
+ * @property {String|null|undefined} name
+ */
+
+
 export default class JDOMComponent extends HTMLElement {
-    /**
-     * @type {ShadowRoot|Node}
-     */
+    /** @type {ShadowRoot|Node} */
     mainElement = null
 
+    /** @type {boolean} */
     #jdomConnectedAlready = false
 
+    /** @type JDOMComponentOptions */
+    options
+
+    /** @param options */
     constructor(options = {}) {
         super()
         this.options = options
@@ -93,6 +108,10 @@ export default class JDOMComponent extends HTMLElement {
         }
     }
 
+    /**
+     * @param key
+     * @param options
+     */
     addAttributeListener(key, options = {}) {
         if (!this.attributeListeners)
             this.attributeListeners = []

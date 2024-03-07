@@ -20,7 +20,7 @@ import {state} from './hooks.js'
 
 class JDOM {
     /**
-     * @param {Node|JDOM|NodeList|string} element
+     * @param {Node|JDOM|NodeList|Array|string} element
      * @param {Node} parent
      */
     constructor(element, parent = undefined) {
@@ -854,8 +854,8 @@ class JDOM {
     /**
      * Registers a webcomponent
      *
-     * @param {string|Object.<string, Node|HTMLElement|JDOMCustomHTMLElement>} tag
-     * @param {Node|HTMLElement|JDOMCustomHTMLElement|undefined} component
+     * @param {string|Object.<string, Node|HTMLElement|JDOMComponent>} tag
+     * @param {Node|HTMLElement|JDOMComponent|undefined} component
      */
     static registerComponent(tag, component = undefined) {
         if (typeof  tag === 'string') {

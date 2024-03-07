@@ -9,7 +9,10 @@ export default class Hook<T> {
     constructor(value: T);
     listeners: any[];
     deleteListeners: any[];
-    setValue(val: any): void;
+    /**
+     * @param {T} val
+     */
+    setValue(val: T): void;
     _value: any;
     /**
      * @param {T} val
@@ -21,7 +24,14 @@ export default class Hook<T> {
     get value(): T;
     destroy(): void;
     dispatchListener(oldVal: any): void;
-    addListener(listener: any): any;
+    /**
+     * @param {function(val: T)} listener
+     * @return {function(val: T)}
+     */
+    addListener(listener: any): (arg0: val) => T;
+    /**
+     * @param {function(val: T)} listener
+     */
     removeListener(listener: any): void;
     toString(): string;
     #private;

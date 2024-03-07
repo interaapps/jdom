@@ -20,5 +20,9 @@
       "jdomjs/*": ["src/jdomjs/*"],
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "types/**/*.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "types/**/*.d.ts"
+  ]
 }

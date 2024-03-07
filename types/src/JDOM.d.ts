@@ -35,12 +35,12 @@ declare class JDOM {
     /**
      * Registers a webcomponent
      *
-     * @param {string|Object.<string, Node|HTMLElement|JDOMCustomHTMLElement>} tag
-     * @param {Node|HTMLElement|JDOMCustomHTMLElement|undefined} component
+     * @param {string|Object.<string, Node|HTMLElement|JDOMComponent>} tag
+     * @param {Node|HTMLElement|JDOMComponent|undefined} component
      */
     static registerComponent(tag: string | {
-        [x: string]: Node | HTMLElement | JDOMCustomHTMLElement;
-    }, component?: Node | HTMLElement | JDOMCustomHTMLElement | undefined): any;
+        [x: string]: Node | HTMLElement | JDOMComponent;
+    }, component?: Node | HTMLElement | JDOMComponent | undefined): Node | undefined;
     /**
      * When the document is ready, the callback will be called
      *
@@ -60,10 +60,10 @@ declare class JDOM {
      */
     static fromHTML(html: string): JDOM;
     /**
-     * @param {Node|JDOM|NodeList|string} element
+     * @param {Node|JDOM|NodeList|Array|string} element
      * @param {Node} parent
      */
-    constructor(element: Node | JDOM | NodeList | string, parent?: Node);
+    constructor(element: Node | JDOM | NodeList | any[] | string, parent?: Node);
     /**
      * @type {Node[]}
      */

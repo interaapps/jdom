@@ -1,12 +1,20 @@
 import Hook from './Hook.js'
-import JDOMComponent from './JDOMComponent.js'
 
-
+/**
+ * @template T
+ * @param {T} initialValue
+ * @return {Hook}
+ */
 export function state(initialValue) {
     return new Hook(initialValue)
 }
 
-
+/**
+ *
+ * @param {function()} callable
+ * @param {Hook[]} dependencies
+ * @return {Hook}
+ */
 export function computed(callable, dependencies = []) {
     const hook = new Hook(callable())
 
@@ -19,12 +27,22 @@ export function computed(callable, dependencies = []) {
     return hook
 }
 
+/**
+ * @param {Hook[]} hooks
+ * @param {function()} callable
+ */
 export function watch(hooks, callable) {
     for (let hook of hooks) {
         hook.addListener(callable)
     }
 }
 
+
+/**
+ * @param {JDOMComponent} component
+ * @param {string} attr
+ * @return {Hook}
+ */
 export function bind(component, attr = 'value') {
     const hook = new Hook(component[attr])
 

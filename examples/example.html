@@ -21,14 +21,23 @@
     import Hook from "../src/Hook.js";
     import { ForEach, Awaiting } from "../src/template/helper/components.js";
 
-    const a = state(['asc', 'asd'])
+    const a = state(0)
 
-    watch([a], () => console.log(a.value))
+    function Test(props) {
+        console.log(props)
+        return html`
+            <h3>Halloooo</h3>
+        `
+    }
 
     html`
-        <button @click=${()=> a.value = typeof a.value === 'string' ? ['a', 'b', 'c'] : 'Hallo'}>Toggle</button>
+        <button @click=${()=> a.value++}>Plus</button>
 
-        ${a}
+        <h1 :if=${computed(() => a.value === 0, [a])}>Hallo</h1>
+        <${Test} :else-if=${computed(() => a.value === 3, [a])} />
+        <h1 :else>ESLE</h1>
+
+
 
     `.appendTo(document)
 

@@ -1,10 +1,13 @@
 import { state as _state, computed as _computed, watch as _watch, bind as _bind } from './hooks.js'
 import Hook from "./Hook.js";
-import JDOMComponent from "./JDOMComponent.js";
+
+interface AttributeOptions {
+    name?: String;
+}
 
 export function State() {
     return function (target: any, key: string) {
-        /*const value = _state(target[key]?.value);
+        const value = _state(target[key]?.value);
 
         Object.defineProperty(target, key, {
             get() {
@@ -14,7 +17,7 @@ export function State() {
                 value.value = newValue
             },
             configurable: true
-        })*/
+        })
     }
 }
 
@@ -57,7 +60,7 @@ export function CustomElement(name: string) {
     }
 }
 
-export function Attribute(options = {}) {
+export function Attribute(options: AttributeOptions = {}) {
     return (target: any, key: string) => {
         target.addAttributeListener(key, options)
     }

@@ -44,14 +44,22 @@ export default class TemplateDOMAdapter {
                 for (const [key, value] of conf.attributes) {
                     if (key === ':bind') {
                         elAttribs.value = value
+                    } else if (key === ':if' || key === ':else-if' || key === ':else') {
                     } else {
                         elAttribs[key] = value
                     }
                 }
 
-                const newEl = conf.tag(elAttribs)
+                let called = conf.tag(elAttribs)
+                let newEl = this.createFromValue({ value: called })
 
-                return this.createFromValue({ value: newEl })
+                for (const [key, value] of conf.attributes) {
+                    if (key === ':if' || key === ':else-if' || key === ':else') {
+                        [newEl] = this.addControlFlow(key, value, newEl, false, false, () => null)
+                    }
+                }
+
+                return newEl
             }
         }
 
@@ -104,6 +112,9 @@ export default class TemplateDOMAdapter {
                         }
                     }
                     if (usingJDOMComponent) {
+                        if (key.endsWith('.attr')) {
+                            elem.setAttribute(key.replace('.attr', ''), value)
+                        }
                         elem[key] = value
                         return
                     }
@@ -196,34 +207,8 @@ export default class TemplateDOMAdapter {
                     })
                 }
                 el.innerHTML = getValue()
-            } else if(key === ':if') {
-                let destroy;
-                [el, addChildren, destroy] = this.bindIf(el, value, addChildren, addedChildren, setup)
-
-                this.ifQueryParts.push(['IF', value, el, [value], destroy])
-            } else if(key === ':else-if') {
-                const [type, state, _, deps] = this.ifQueryParts.pop();
-                const comp = computed(() => {
-                    for (const dep of deps) {
-                        if (dep.value)
-                            return false
-                    }
-                    return value.value
-                }, [value, ...deps])
-
-                let destroy;
-                ;[el, addChildren, destroy] = this.bindIf(el, comp, addChildren, addedChildren, setup)
-
-                this.ifQueryParts.push(['ELSE-IF', comp, el, [...deps, comp], destroy])
-            } else if(key === ':else') {
-                const [type, state, _, deps] = this.ifQueryParts.pop();
-                ;[el, addChildren] = this.bindIf(el, computed(() => {
-                    for (const dep of deps) {
-                        if (dep.value)
-                            return false
-                    }
-                    return true
-                }, [state, ...deps]), addChildren, addedChildren, setup)
+            } else if(key === ':if' || key === ':else' || key === ':else-if') {
+                [el, addChildren] = this.addControlFlow(key, value, el, addChildren, addedChildren, setup)
             } else if(key === '@:create') {
                 onCreate = value
             } else {
@@ -236,6 +221,40 @@ export default class TemplateDOMAdapter {
         }
 
         return el
+    }
+
+
+    addControlFlow(key, value, el, addChildren, addedChildren, setup) {
+        let deps = null
+        let destroy = () => null;
+        if(key === ':if') {
+            [el, addChildren, destroy] = this.bindIf(el, value, addChildren, addedChildren, setup)
+            this.ifQueryParts.push(['IF', value, el, [value], destroy])
+        } else if(key === ':else-if') {
+            const [, , , deps] = this.ifQueryParts.pop();
+            const comp = computed(() => {
+                for (const dep of deps) {
+                    if (dep.value)
+                        return false
+                }
+                return value.value
+            }, [value, ...deps])
+
+            let destroy;
+            ;[el, addChildren, destroy] = this.bindIf(el, comp, addChildren, addedChildren, setup)
+
+            this.ifQueryParts.push(['ELSE-IF', comp, el, [...deps, comp], destroy])
+        } else if(key === ':else') {
+            const [type, state, _, deps] = this.ifQueryParts.pop();
+            ;[el, addChildren] = this.bindIf(el, computed(() => {
+                for (const dep of deps) {
+                    if (dep.value)
+                        return false
+                }
+                return true
+            }, [state, ...deps]), addChildren, addedChildren, setup)
+        }
+        return [el, addChildren, destroy, deps]
     }
 
     bindIf(el, state, addChildren = true, addedChildren = false, setup = () => {}) {

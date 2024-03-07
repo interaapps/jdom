@@ -50,6 +50,9 @@ export default class Hook {
         });
     }
 
+    /**
+     * @param {T} val
+     */
     setValue(val) {
         const old = this._value
         this._value = val
@@ -100,11 +103,18 @@ export default class Hook {
         }
     }
 
+    /**
+     * @param {function(val: T)} listener
+     * @return {function(val: T)}
+     */
     addListener(listener) {
         this.listeners.push(listener)
         return listener
     }
 
+    /**
+     * @param {function(val: T)} listener
+     */
     removeListener(listener) {
         this.listeners = this.listeners.filter(l => l !== listener)
     }

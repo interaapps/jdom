@@ -3,6 +3,7 @@ export default class TemplateDOMAdapter {
     ifQueryParts: any[];
     parsed: any;
     createElement(conf: any): any;
+    addControlFlow(key: any, value: any, el: any, addChildren: any, addedChildren: any, setup: any): any[];
     bindIf(el: any, state: any, addChildren?: boolean, addedChildren?: boolean, setup?: () => void): any[];
     createText({ value }: {
         value: any;

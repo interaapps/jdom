@@ -1,10 +1,39 @@
-import { $, $c, $n, html, state } from '../../index.js'
+import { $n, html, state } from '../../index.js'
 
+/**
+ * @typedef Route
+ * @property {string} name
+ * @property {string} path
+ * @property {string} path
+ */
+
+/**
+ * @typedef CurrentRoute
+ * @property {string} path
+ * @property {Object} query
+ * @property {string} hash
+ * @property {Object.<String, String>} params
+ * @property {Route} route
+ */
 
 export default class Router {
+
+    /**
+     * @type {Hook<CurrentRoute>}
+     */
+    currentRoute
+
+    /**
+     * @type Route[]
+     */
+    routes = []
+
+    /**
+     * @param {Route[]} routes
+     */
     constructor(routes = []) {
         this.view = state(null)
-        this.currentPath = state(null)
+        this.currentRoute = state(null)
 
         this.link = (to, text) => $n('a').attr('href', to).text(text).click(e => {
             this.go(to)
@@ -14,19 +43,55 @@ export default class Router {
         this.routes = routes
     }
 
+    /**
+     * @param to
+     * @return {CurrentRoute|string}
+     */
     getPath(to) {
         if (typeof to === 'string')
             return to
+
+        const route = this.routes.find((n => n.name === to))
+        let path = route.path
+
+        if (to.params) {
+            for (const [key, value] of to.params) {
+                path = path.replace(`:${key}`, value)
+            }
+        }
+
+        if (to.query) {
+            if (typeof to.query === 'string') {
+                path += to.query.startsWith('?') ? to.query : `${to.query}`
+            } else {
+                path += '?' + Object.keys(to.query)
+                    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+                    .join('&')
+            }
+        }
+
+        if (to.hash && to.hash !== '#') {
+            path += to.hash.startsWith('#') ? to.hash : `#${to.hash}`
+        }
+
+        return path
     }
 
+    /**
+     * @param to
+     * @return {Promise<void>}
+     */
     async go(to) {
         const path = this.getPath(to)
         window.history.pushState(path, path, path)
-        await this.run(to)
+        await this.run(path)
     }
 
-    async run(path = window.location.pathname) {
-        const currentPath = window.location.pathname
+    /**
+     * @param {string} currentPath
+     * @return {Promise<void>}
+     */
+    async run(currentPath = window.location.pathname) {
         for (const route of this.routes) {
             const {name, path, view} = route
 
@@ -58,9 +123,9 @@ export default class Router {
             }
 
             if (isCorrect) {
-                const query = new URLSearchParams(window.location.search)
-                this.currentPath.value = {
+                this.currentRoute.value = {
                     path: currentPath,
+                    name,
                     route,
                     query: new Proxy(new URLSearchParams(window.location.search), {
                         get: (searchParams, prop) => searchParams.get(prop),
@@ -69,8 +134,7 @@ export default class Router {
                     params
                 }
 
-                this.view.value = html`${typeof view === 'function' && !(view instanceof Node) ? await view(this.currentPath) : view}`.nodes()
-
+                this.view.value = html`${typeof view === 'function' && !(view instanceof Node) ? await view(this.currentRoute) : view}`.nodes()
                 break
             }
         }
