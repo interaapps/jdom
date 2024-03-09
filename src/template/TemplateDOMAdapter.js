@@ -218,6 +218,14 @@ export default class TemplateDOMAdapter {
 
             if (key.startsWith('@')) {
                 events[key.substring(1)] = value
+            } else if(key === ':ref') {
+                if (value instanceof Hook) {
+                    value.value = el
+                } else if (typeof value.value === 'function') {
+                    value.value(el)
+                } else {
+                    console.error(':ref value is not a type of Hook or function.')
+                }
             } else if(key === ':bind') {
                 model = value
             } else if(key === ':html') {
@@ -331,7 +339,6 @@ export default class TemplateDOMAdapter {
 
             const isArray = Array.isArray(state.value)
 
-            let removeEl = () => {}
             let outputElement = null
 
             let stateListener

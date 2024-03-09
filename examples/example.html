@@ -41,8 +41,14 @@
         `
     }
 
+    const h1Element = state(null)
+
+    h1Element.addListener(el => {
+        console.log('öööööööööööööööööööööööö', el)
+    })
+
     html`
-        <h1>Test</h1>
+        <h1 :ref=${h1Element}>Test</h1>
 
         ${computed(() => [
             [
