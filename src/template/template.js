@@ -11,16 +11,20 @@ import Hook from '../Hook.js'
  * @return {JDOM}
  */
 export function html(strings, ...values) {
-    // console.time("myFunction");
     const parser = JDOMTemplateParser.fromTemplate(strings, ...values)
 
     const parsed = parser.parse()
 
     const adapter = new TemplateJDOMAdapter(parsed)
-    // console.timeEnd("myFunction");
     return adapter.create()
 }
-
+/**
+ * Usage: css`h1 {font-size: 20px}`
+ *
+ * @param strings
+ * @param values
+ * @return string
+ */
 export function css(strings, ...values) {
     let out = ''
     let i = 0
@@ -45,9 +49,9 @@ export function css(strings, ...values) {
  * `
  * ```
  *
- * @param {string[]} strings
- * @param {...any} values
- * @return {Hook}
+ * @param strings
+ * @param values
+ * @return {Hook<string>}
  */
 export function comp(strings, ...values) {
     return computed(() => {

@@ -6,6 +6,13 @@
  * @return {JDOM}
  */
 export function html(strings: any, ...values: any[]): JDOM;
+/**
+ * Usage: css`h1 {font-size: 20px}`
+ *
+ * @param strings
+ * @param values
+ * @return string
+ */
 export function css(strings: any, ...values: any[]): string;
 /**
  * usage:
@@ -18,9 +25,9 @@ export function css(strings: any, ...values: any[]): string;
  * `
  * ```
  *
- * @param {string[]} strings
- * @param {...any} values
- * @return {Hook}
+ * @param strings
+ * @param values
+ * @return {Hook<string>}
  */
-export function comp(strings: string[], ...values: any[]): Hook<any>;
+export function comp(strings: any, ...values: any[]): Hook<string>;
 import Hook from '../Hook.js';

@@ -1,16 +1,16 @@
 /**
  * @template T
  * @param {T} initialValue
- * @return {Hook}
+ * @return {Hook<T>}
  */
-export function state<T>(initialValue: T): Hook<any>;
+export function state<T>(initialValue: T): Hook<T>;
 /**
- *
- * @param {function()} callable
+ * @template T
+ * @param {function(): T} callable
  * @param {Hook[]} dependencies
- * @return {Hook}
+ * @return {Hook<T>}
  */
-export function computed(callable: () => any, dependencies?: Hook<any>[]): Hook<any>;
+export function computed<T>(callable: () => T, dependencies?: Hook<any>[]): Hook<T>;
 /**
  * @param {Hook[]} hooks
  * @param {function()} callable

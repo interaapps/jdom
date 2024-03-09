@@ -144,7 +144,7 @@ export default class TemplateDOMAdapter {
                         }
                     })
 
-                    model.listeners.push(val => {
+                    model.addListener(val => {
                         if (elem.value !== model.value) {
                             elem.value = val
                             elem.dispatchEvent(new InputEvent('input:value'))
@@ -329,18 +329,15 @@ export default class TemplateDOMAdapter {
             })
 
             if (isArray) {
-                const comment = document.createComment('JDOM-Templating:arrhook')
+                const comment = document.createComment('JDOM-Templating:arrhook1')
                 outputElement = comment
 
                 let elements = []
 
-                removeEl = () => elements.forEach(e => e.forEach(i => this.removeElement(i)))
                 const setElements = () => {
                     for (const item of elements) {
-                        item.elements.forEach(e => this.removeElement(e))
-                        elements = elements.filter(e => e !== item)
+                        this.removeElement(item)
                     }
-                    let i = 0
 
                     if (!Array.isArray(state.value)) {
                         this.replaceElement(outputElement, this.createFromValue({ value: state.value }))
@@ -349,17 +346,37 @@ export default class TemplateDOMAdapter {
                     }
 
                     let lastEl = comment
+                    let i = 0
                     for (const item of state.value) {
                         let itemEls = this.createFromValue({value: item})
                         if (!Array.isArray(itemEls))
                             itemEls = [itemEls]
 
-                        elements = [...elements, {
-                            key: ++i,
-                            elements: itemEls
-                        }]
+                        const currentIndex = i++
+                        elements = [...elements, ...itemEls]
 
-                        itemEls.forEach(e => lastEl = this.afterElement(lastEl, e))
+                        itemEls.forEach((e) => {
+                            lastEl = this.afterElement(lastEl, e)
+
+                            const addReplaceListener = toRepl => {
+                                toRepl.addEventListener(':replaced_with', ({detail: {to}}) => {
+                                    for (const e of to) {
+                                        addReplaceListener(e)
+                                        elements.push(e)
+                                    }
+                                })
+
+                                toRepl.addEventListener(':attached', () => {
+                                    elements.push(toRepl)
+                                })
+
+                                toRepl.addEventListener(':detached', () => {
+                                    elements = elements.filter(e => e !== toRepl)
+                                })
+                            }
+
+                            addReplaceListener(lastEl)
+                        })
                     }
                 }
 
@@ -369,12 +386,7 @@ export default class TemplateDOMAdapter {
 
                 setElements()
 
-                let out = []
-
-                for (const item of elements) {
-                    item.elements.forEach(e => out = [...out, e])
-                }
-                return [comment, ...out]
+                return [comment, ...elements]
             } else if (typeof state.value === 'string' || typeof state.value === 'number' || typeof state.value === 'boolean') {
                 outputElement = this.createText({value: state.value})
 
@@ -446,6 +458,7 @@ export default class TemplateDOMAdapter {
     replaceElement(from, to) {
         const replElements = Array.isArray(from) ? [...from] : [from]
         const endElements = Array.isArray(to) ? [...to] : [to]
+        const finalEndElements = [...endElements]
 
         if (endElements.length === 0)
             endElements.push(document.createComment('JDOM-Templating:REPLACEMENT'))
@@ -456,7 +469,7 @@ export default class TemplateDOMAdapter {
         const firstEndEl = endElements.shift()
 
 
-        firstEl.dispatchEvent(new CustomEvent(':replace_with', { to }))
+        firstEl.dispatchEvent(new CustomEvent(':replace_with', { detail: { to: finalEndElements } }))
         firstEl.dispatchEvent(new CustomEvent(':detach'))
         firstEndEl.dispatchEvent(new CustomEvent(':child_attach'))
         firstEl.replaceWith(firstEndEl)
@@ -468,7 +481,7 @@ export default class TemplateDOMAdapter {
             lastEl = this.afterElement(lastEl, e)
         })
 
-        firstEl.dispatchEvent(new CustomEvent(':replaced_with', { to }))
+        firstEl.dispatchEvent(new CustomEvent(':replaced_with', { detail: { to: finalEndElements } }))
         firstEl.dispatchEvent(new CustomEvent(':detached'))
         firstEndEl.dispatchEvent(new CustomEvent(':child_attached'))
 

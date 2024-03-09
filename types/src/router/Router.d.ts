@@ -25,7 +25,7 @@ export default class Router {
      * @type Route[]
      */
     routes: Route[];
-    view: import("src/Hook.js").default<any>;
+    view: import("src/Hook.js").default<null>;
     link: (to: any, text: any) => any;
     /**
      * @param to

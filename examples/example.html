@@ -21,8 +21,6 @@
     import Hook from "../src/Hook.js";
     import { ForEach, Awaiting } from "../src/template/helper/components.js";
 
-    const a = state(0)
-
     function Test(props) {
         console.log(props)
         return html`
@@ -30,18 +28,7 @@
         `
     }
 
-    html`
-        <button @click=${()=> a.value++}>Plus</button>
 
-        <h1 :if=${computed(() => a.value === 0, [a])}>Hallo</h1>
-        <${Test} :else-if=${computed(() => a.value === 3, [a])} />
-        <h1 :else>ESLE</h1>
-
-
-
-    `.appendTo(document)
-
-    /*
     const paste = fetch(`https://pastefy.app/api/v2/paste/9XH0KD7g`)
         .then(r => r.json())
         .then(r => JSON.parse(r.content))

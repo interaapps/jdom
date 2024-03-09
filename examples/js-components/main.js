@@ -4,6 +4,7 @@ import Hook from "../../src/Hook.js";
 class ToDoApp extends JDOMComponent {
     tasks = new Hook([]);
     newTaskText = new Hook('');
+
     constructor() {
         super();
     }

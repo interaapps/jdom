@@ -3,17 +3,17 @@ import Hook from './Hook.js'
 /**
  * @template T
  * @param {T} initialValue
- * @return {Hook}
+ * @return {Hook<T>}
  */
 export function state(initialValue) {
     return new Hook(initialValue)
 }
 
 /**
- *
- * @param {function()} callable
+ * @template T
+ * @param {function(): T} callable
  * @param {Hook[]} dependencies
- * @return {Hook}
+ * @return {Hook<T>}
  */
 export function computed(callable, dependencies = []) {
     const hook = new Hook(callable())
