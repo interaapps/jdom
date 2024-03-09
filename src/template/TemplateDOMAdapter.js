@@ -89,6 +89,14 @@ export default class TemplateDOMAdapter {
                         if (typeof value === 'object') {
                             elem.style = ''
                             Object.entries(value).forEach(([key, value]) => {
+                                if (value instanceof Hook) {
+                                    const hook = value
+                                    const listener = v => el.style[key] = v
+                                    el.addEventListener(':detached', () => hook.removeListener(listener))
+                                    el.addEventListener(':attached', () => hook.addListener(listener))
+
+                                    value = hook.value
+                                }
                                 elem.style[key] = value
                             })
                             return
@@ -101,6 +109,19 @@ export default class TemplateDOMAdapter {
                                 classes = value
                             } else if (typeof value === 'object') {
                                 Object.entries(value).forEach(([key, value]) => {
+                                    if (value instanceof Hook) {
+                                        const hook = value
+                                        const listener = v => {
+                                            if (v && !el.classList.contains(key)) {
+                                                el.classList.add(key)
+                                            } else if (!v && el.classList.contains(key)) {
+                                                el.classList.remove(key)
+                                            }
+                                        }
+                                        el.addEventListener(':detached', () => hook.removeListener(listener))
+                                        el.addEventListener(':attached', () => hook.addListener(listener))
+                                        value = hook.value
+                                    }
                                     if (value) {
                                         classes.push(key)
                                     }
