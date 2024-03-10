@@ -522,7 +522,6 @@ export default class TemplateDOMAdapter {
         endElements.forEach(e => {
             lastEl = this.afterElement(lastEl, e)
         })
-
         firstEndEl.dispatchEvent(new CustomEvent(':attached'))
 
         firstEl.dispatchEvent(new CustomEvent(':replaced_with', { detail: { to: finalEndElements } }))

@@ -81,17 +81,21 @@ export default class Router {
      * @param to
      * @return {Promise<void>}
      */
-    async go(to) {
+    async go(to, reloadIfChanged = true) {
+        [to] = to.split('?', 1)
+        [to] = to.split('#', 1)
         const path = this.getPath(to)
         window.history.pushState(path, path, path)
-        await this.run(path)
+
+        await this.run(reloadIfChanged)
     }
 
     /**
-     * @param {string} currentPath
+     * @param {boolean} reloadIfChanged
      * @return {Promise<void>}
      */
-    async run(currentPath = window.location.pathname) {
+    async run(reloadIfChanged = true) {
+        const currentPath = window.location.pathname
         for (const route of this.routes) {
             const {name, path, view} = route
 
@@ -123,6 +127,7 @@ export default class Router {
             }
 
             if (isCorrect) {
+                const latestRoute = this.currentRoute.value?.route
                 this.currentRoute.value = {
                     path: currentPath,
                     name,
@@ -133,6 +138,9 @@ export default class Router {
                     hash: window.location.hash,
                     params
                 }
+
+                if (!reloadIfChanged && latestRoute === route)
+                    break;
 
                 this.view.value = html`${typeof view === 'function' && !(view instanceof Node) ? await view(this.currentRoute) : view}`.nodes()
                 break

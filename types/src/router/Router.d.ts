@@ -36,12 +36,12 @@ export default class Router {
      * @param to
      * @return {Promise<void>}
      */
-    go(to: any): Promise<void>;
+    go(to: any, reloadIfChanged?: boolean): Promise<void>;
     /**
-     * @param {string} currentPath
+     * @param {boolean} reloadIfChanged
      * @return {Promise<void>}
      */
-    run(currentPath?: string): Promise<void>;
+    run(reloadIfChanged?: boolean): Promise<void>;
     init(): Promise<void>;
 }
 export type Route = {
