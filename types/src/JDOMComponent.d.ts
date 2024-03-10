@@ -8,6 +8,10 @@
  * @property {String|null|undefined} name
  */
 export default class JDOMComponent extends HTMLElement {
+    /**
+     * @type {typeof JDOMComponent}
+     */
+    static unshadowed: typeof JDOMComponent;
     /** @param options */
     constructor(options?: {});
     /** @type {ShadowRoot|Node} */

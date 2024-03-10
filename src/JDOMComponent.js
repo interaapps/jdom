@@ -148,4 +148,13 @@ export default class JDOMComponent extends HTMLElement {
     styles() {
         return undefined
     }
+
+    /**
+     * @type {typeof JDOMComponent}
+     */
+    static unshadowed = class JDOMUnshadowedComponent extends JDOMComponent {
+        constructor(options = {}) {
+            super({ shadowed: false, ...options })
+        }
+    }
 }

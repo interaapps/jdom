@@ -91,9 +91,12 @@ export default class TemplateDOMAdapter {
                             Object.entries(value).forEach(([key, value]) => {
                                 if (value instanceof Hook) {
                                     const hook = value
-                                    const listener = v => el.style[key] = v
-                                    el.addEventListener(':detached', () => hook.removeListener(listener))
-                                    el.addEventListener(':attached', () => hook.addListener(listener))
+                                    const listener = v => elem.style[key] = v
+                                    elem.addEventListener(':detached', () => hook.removeListener(listener))
+                                    elem.addEventListener(':attached', () => {
+                                        hook.addListener(listener)
+                                        listener(hook.value)
+                                    })
 
                                     value = hook.value
                                 }
@@ -111,15 +114,21 @@ export default class TemplateDOMAdapter {
                                 Object.entries(value).forEach(([key, value]) => {
                                     if (value instanceof Hook) {
                                         const hook = value
+
                                         const listener = v => {
-                                            if (v && !el.classList.contains(key)) {
-                                                el.classList.add(key)
-                                            } else if (!v && el.classList.contains(key)) {
-                                                el.classList.remove(key)
+                                            if (v && !elem.classList.contains(key)) {
+                                                elem.classList.add(key)
+                                            } else if (!v && elem.classList.contains(key)) {
+                                                elem.classList.remove(key)
                                             }
                                         }
-                                        el.addEventListener(':detached', () => hook.removeListener(listener))
-                                        el.addEventListener(':attached', () => hook.addListener(listener))
+                                        elem.addEventListener(':detached', () => {
+                                            hook.removeListener(listener)
+                                        })
+                                        elem.addEventListener(':attached', () => {
+                                            hook.addListener(listener)
+                                            listener(hook.value)
+                                        })
                                         value = hook.value
                                     }
                                     if (value) {
@@ -311,12 +320,12 @@ export default class TemplateDOMAdapter {
                 lastValue = value
 
                 if (value) {
-                    toRepl = this.replaceElement(toRepl, savedElement)
-                    el = savedElement
                     if (!addedChildren) {
-                        setup(el)
+                        setup(savedElement)
                         addedChildren = true
                     }
+                    toRepl = this.replaceElement(toRepl, savedElement)
+                    el = savedElement
                 } else {
                     toRepl = this.replaceElement(toRepl, commentElement)
                     el = commentElement
@@ -504,14 +513,19 @@ export default class TemplateDOMAdapter {
 
         replElements.forEach(e => this.removeElement(e))
 
+        firstEl.dispatchEvent(new CustomEvent(':detached'))
+        firstEndEl.dispatchEvent(new CustomEvent(':child_attached'))
+
         let lastEl = firstEndEl
+        firstEndEl.dispatchEvent(new CustomEvent(':attach'))
+
         endElements.forEach(e => {
             lastEl = this.afterElement(lastEl, e)
         })
 
+        firstEndEl.dispatchEvent(new CustomEvent(':attached'))
+
         firstEl.dispatchEvent(new CustomEvent(':replaced_with', { detail: { to: finalEndElements } }))
-        firstEl.dispatchEvent(new CustomEvent(':detached'))
-        firstEndEl.dispatchEvent(new CustomEvent(':child_attached'))
 
         return finalEnd
     }

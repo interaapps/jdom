@@ -1,7 +1,7 @@
 import { JDOMComponent, $, html, css, computed } from '../../index.js';
 import Hook from "../../src/Hook.js";
 
-class ToDoApp extends JDOMComponent {
+class ToDoApp extends JDOMComponent.unshadowed {
     tasks = new Hook([]);
     newTaskText = new Hook('');
 
@@ -63,6 +63,8 @@ class ToDoApp extends JDOMComponent {
         `;
     }
 }
+
+console.log(ToDoApp.unshadowed)
 
 // Register custom element
 window.customElements.define('todo-app', ToDoApp);
