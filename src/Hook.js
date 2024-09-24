@@ -9,6 +9,10 @@ export default class Hook {
     #destroyed = false
     #alreadyProxied = false
 
+    static TRACKING = []
+    static IS_TRACKING = false
+
+
     /**
      * @param {T} value
      */
@@ -94,6 +98,7 @@ export default class Hook {
      * @return {T}
      */
     get value() {
+        Hook.track(this)
         return this._value
     }
 
@@ -104,8 +109,10 @@ export default class Hook {
 
     dispatchListener(oldVal) {
         for (let listener of this.listeners) {
-            if (listener.call(this, this._value, oldVal) === true)
-                break
+            try {
+                if (listener.call(this, this._value, oldVal) === true)
+                    break
+            } catch (e) {}
         }
     }
 
@@ -127,5 +134,33 @@ export default class Hook {
 
     toString() {
         return `${this.value}`
+    }
+
+    /**
+     * @param {Hook} hook
+     */
+    static track(hook) {
+        if (Hook.IS_TRACKING) {
+            Hook.TRACKING.push(hook)
+        }
+    }
+
+    static enableTracking() {
+        Hook.IS_TRACKING = true
+    }
+    static disableTracking() {
+        Hook.IS_TRACKING = false
+        Hook.clearTracked()
+    }
+
+    /**
+     * @return {Hook[]}
+     */
+    static getTracked() {
+        return Hook.TRACKING
+    }
+
+    static clearTracked() {
+        Hook.TRACKING = []
     }
 }

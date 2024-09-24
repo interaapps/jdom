@@ -1,4 +1,28 @@
-import { $, state, computed, html } from '../../index.js';
+import { $, $r, state, computed, html, JDOMComponent } from '../../index.js';
+
+class Test2 extends JDOMComponent {
+    test = state('Test2')
+
+    constructor() {
+        super()
+    }
+    render() {
+        console.log(this.test)
+        return html`a: ${this.test}`
+    }
+}
+$r('test-app', Test2)
+
+class Test {
+    image = state('Test1')
+    create(){
+        html`<${Test2} test=${this.image} /> <button @click=${() => this.image.value = 'OOO'}>OO</button>`.appendTo(document.body);
+    }
+}
+
+new Test().create()
+
+
 
 
 const tasks = state([]);

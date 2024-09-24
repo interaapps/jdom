@@ -21,7 +21,7 @@ export function State() {
     }
 }
 
-export function Computed(dependencies: string[] | ((target: any) => Hook<any>[])) {
+export function Computed(dependencies: string[] | ((target: any) => Hook[])) {
     return function(target: any, key: string) {
         const func = target[key];
 

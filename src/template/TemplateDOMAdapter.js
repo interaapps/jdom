@@ -144,8 +144,14 @@ export default class TemplateDOMAdapter {
                     if (usingJDOMComponent) {
                         if (key.endsWith('.attr')) {
                             elem.setAttribute(key.replace('.attr', ''), value)
+                        } else if (key.endsWith('.unhook')) {
+                            elem[key] = value
+                        } else if (elem[key] instanceof Hook) {
+                            elem[key].value = value
+                        } else {
+                            elem[key] = value
                         }
-                        elem[key] = value
+
                         return
                     }
                     elem.setAttribute(key, value)
