@@ -115,7 +115,6 @@ export default class TemplateDOMAdapter {
                                     if (value instanceof Hook) {
                                         const hook = value
                                         const listener = v => {
-                                            console.log('Hok')
                                             if (v && !elem.classList.contains(key)) {
                                                 elem.classList.add(key)
                                             } else if (!v && elem.classList.contains(key)) {
@@ -123,7 +122,6 @@ export default class TemplateDOMAdapter {
                                             }
                                         }
                                         elem.addEventListener(':detached', () => {
-                                            console.log('hok bom')
                                             hook.removeListener(listener)
                                         })
                                         elem.addEventListener(':attached', () => {
@@ -159,15 +157,15 @@ export default class TemplateDOMAdapter {
 
                         return
                     }
-                    console.log(key, value)
+
                     elem.setAttribute(key, value)
                 }
 
                 if (value instanceof Hook) {
                     const listener = value.addListener(() => {
-                        setValue(key, value)
+                        setValue(key, usingJDOMComponent ? value : value.value)
                     })
-                    setValue(key, value)
+                    setValue(key, usingJDOMComponent ? value : value.value)
 
                     elem.addEventListener(':detached', () => value.removeListener(listener))
                 } else {

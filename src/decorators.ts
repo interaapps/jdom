@@ -1,7 +1,7 @@
 import { state as _state, computed as _computed, watch as _watch, bind as _bind } from './hooks.js'
 import Hook from "./Hook.js";
 import JDOM from "./JDOM.js";
-import JDOMComponent from "./JDOMComponent";
+import JDOMComponent from "./JDOMComponent.js";
 
 interface AttributeOptions {
     name?: String;
@@ -58,7 +58,7 @@ export function Watch(dependencies: string[]|Function) {
 }*/
 
 export function CustomElement(name: string|undefined = undefined) {
-    return function(target: JDOMComponent) {
+    return function(target: any) {
         if (name === undefined) {
             JDOM.registerComponent([target])
             return;

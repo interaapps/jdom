@@ -3,8 +3,8 @@ import Hook from './Hook.js'
 
 /**
  * @typedef JDOMComponentOptions
- * @property {boolean} shadowed
- * @property {string|null} styles
+ * @property {boolean} [shadowed]
+ * @property {string|null} [styles]
  */
 
 /**
