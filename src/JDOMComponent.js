@@ -12,8 +12,14 @@ import Hook from './Hook.js'
  * @property {String|null|undefined} name
  */
 
-
-export default class JDOMComponent extends HTMLElement {
+/**
+ * @extends {HTMLElement}
+ */
+export default class JDOMComponent extends (typeof HTMLElement === 'undefined' ? class{
+    constructor() {
+        console.error("Your Runtime can't create a JDOM component. This may result into errors.")
+    }
+} : HTMLElement) {
     /** @type {ShadowRoot|Node} */
     mainElement = null
 
@@ -23,7 +29,7 @@ export default class JDOMComponent extends HTMLElement {
     /** @type JDOMComponentOptions */
     options
 
-    /** @param options */
+    /** @param {JDOMComponentOptions} options */
     constructor(options = {}) {
         super()
         this.options = options
@@ -42,7 +48,7 @@ export default class JDOMComponent extends HTMLElement {
 
         this.#jdomConnectedAlready = true
 
-        const { shadowed = true, style = null } = this.options
+        const { shadowed = false, style = null } = this.options
         this.registerAttributeListener()
 
         this.mainElement = this
@@ -50,6 +56,8 @@ export default class JDOMComponent extends HTMLElement {
         if (shadowed) {
             this.mainElement = this.attachShadow({mode: 'closed'})
         }
+
+        await this.setup() // It may be async
 
         const content = await this.render() // It may be async
         if (content) {
@@ -93,9 +101,13 @@ export default class JDOMComponent extends HTMLElement {
                     const { detail: { mutation } } = e
 
                     if (!lastListener) {
-                        lastListener = this[key].addListener(val => {
+                        const hook = this[key]
+                        const listener = hook.addListener(val => {
                             this.setAttribute(attrName, val)
                         })
+                        lastListener = listener
+
+                        this.addEventListener(':detached', e => hook.removeListener(listener))
                     }
 
                     if (mutation.attributeName === attrName) {
@@ -123,6 +135,7 @@ export default class JDOMComponent extends HTMLElement {
         this.attributeListeners.push({ key, options })
     }
 
+    setup() {}
     detach() {}
     detached() {}
     attach() {}
@@ -156,5 +169,12 @@ export default class JDOMComponent extends HTMLElement {
         constructor(options = {}) {
             super({ shadowed: false, ...options })
         }
+    }
+
+    /**
+     * @param {Event} event
+     */
+    dispatchEvent(event) {
+        super.dispatchEvent(event)
     }
 }

@@ -19,6 +19,8 @@ import {state} from './hooks.js'
  */
 
 class JDOM {
+    static compIndex = 0
+
     /**
      * @param {Node|JDOM|NodeList|Array|string} element
      * @param {Node} parent
@@ -854,13 +856,37 @@ class JDOM {
     /**
      * Registers a webcomponent
      *
-     * @param {string|Object.<string, Node|HTMLElement|JDOMComponent>} tag
+     * @param {string|Object.<string, Node|HTMLElement|JDOMComponent>|Node|HTMLElement|JDOMComponent|(Node|HTMLElement|JDOMComponent)[]} tag
      * @param {Node|HTMLElement|JDOMComponent|undefined} component
      */
     static registerComponent(tag, component = undefined) {
         if (typeof  tag === 'string') {
             window.customElements.define(tag, component)
             return component
+        } else if (Array.isArray(tag)) {
+            tag.forEach((clazz) => {
+                JDOM.registerComponent(clazz)
+            })
+            return;
+        } else if (tag?.prototype instanceof Node || tag?.prototype instanceof HTMLElement || tag?.prototype instanceof HTMLElement) {
+            const clazz = tag
+
+            const str = clazz.name
+            const camelCaseStr = str.charAt(0).toLowerCase() + str.slice(1);
+
+            let name = camelCaseStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+            name = name.includes('-') ? name : `jdom-${name}`
+
+            const alreadyRegisted = window.customElements.get(name)
+            if (alreadyRegisted) {
+                if (alreadyRegisted === clazz) {
+                    return;
+                } else {
+                    name += `-${++compIndex.value}`
+                }
+            }
+
+            window.customElements.define(name, clazz)
         }
         Object.entries(tag).forEach(([name, comp]) => {
             window.customElements.define(name, comp)

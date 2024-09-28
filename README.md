@@ -137,18 +137,17 @@ $r('my-component', MyComponent)
 import {html, JDOMComponent} from 'jdomjs'
 import {CustomElement, State, Attribute} from "jdomjs/decorator.ts";
 
-@CustomElement('example-component')
+@CustomElement('example-component') // This will register the component on customElements
 class ExampleComponent extends JDOMComponent {
-  @State()
   private name = new Hook<String>('John')
 
-  @State()
-  @Attribute({ name: 'last-name' })
   private lastName = new Hook<String>('default')
 
-  @Computed(s => [s.name])
-  private greetings() {
-    return comp`Hello ${this.name}`
+  private greetings = computed(() => comp`Hello ${this.name}`)
+
+  constructor() {
+    super();
+    super.addAttributeListener('lastName', {name: 'last-name'})
   }
 
   render() {
@@ -185,6 +184,17 @@ class ExampleComponent extends JDOMComponent {
             <h1>${this.greetings()}</h1>
           `
   }
+}
+
+$r('example-component', ExampleComponent)
+```
+# Shadowed Component
+
+```ts
+import {html, JDOMShadowComponent, $r} from 'jdomjs'
+
+class ExampleComponent extends JDOMShadowComponent {
+  ...
 }
 
 $r('example-component', ExampleComponent)

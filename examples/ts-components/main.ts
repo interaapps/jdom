@@ -1,5 +1,5 @@
 import {JDOMComponent, $, html, css, computed, comp} from '../../index.js';
-import {Attribute, Computed, CustomElement, State, Watch} from '../../src/decorators';
+import {Attribute, CustomElement} from '../../src/decorators';
 import Hook from "../../src/Hook";
 
 interface Task {
@@ -9,10 +9,17 @@ interface Task {
 
 @CustomElement('todo-app')
 class ToDoApp extends JDOMComponent {
-    @State()
-    private tasks = new Hook<Task[]>([]);
+    public tasks = new Hook<Task[]>([]);
 
-    @State()
+    public tasksList = computed(() => this.tasks.value.map((task, index) => html`
+        <li class=${{ 'done': task.done }}>
+            <span @click=${() => this.toggleDone(index)}>
+                ${task.text}
+            </span>
+            <button @click=${() => this.removeTask(index)}>Remove</button>
+        </li>
+    `));
+
     private newTaskText = new Hook<String>('');
 
     constructor() {
@@ -36,19 +43,10 @@ class ToDoApp extends JDOMComponent {
         this.tasks.value = this.tasks.value.filter((_, i) => i !== index);
     }
 
-    @Computed(s => [s.tasks])
-    tasksList() {
-        return this.tasks.value.map((task, index) => html`
-            <li class=${{ 'done': task.done }}>
-                <span @click=${() => this.toggleDone(index)}>
-                    ${task.text}
-                </span>
-                <button @click=${() => this.removeTask(index)}>Remove</button>
-            </li>
-        `)
-    }
-
     render() {
+        console.log(this.tasks)
+        console.log(this.tasksList)
+        console.log(this.tasks)
         return html`
             <div id="todo-app">
                 <input 

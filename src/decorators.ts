@@ -1,11 +1,13 @@
 import { state as _state, computed as _computed, watch as _watch, bind as _bind } from './hooks.js'
 import Hook from "./Hook.js";
+import JDOM from "./JDOM.js";
+import JDOMComponent from "./JDOMComponent";
 
 interface AttributeOptions {
     name?: String;
 }
 
-export function State() {
+/* export function State() {
     return function (target: any, key: string) {
         const value = _state(target[key]?.value);
 
@@ -21,7 +23,7 @@ export function State() {
     }
 }
 
-export function Computed(dependencies: string[] | ((target: any) => Hook[])) {
+export function Computed(dependencies: string[] | ((target: any) => Hook<any>[])) {
     return function(target: any, key: string) {
         const func = target[key];
 
@@ -31,6 +33,7 @@ export function Computed(dependencies: string[] | ((target: any) => Hook[])) {
 
         return {
             get() {
+                console.log('Ex', target, window.example)
                 if (!hook) {
                     hook = _computed(() => {
                         return func.call(target)
@@ -52,16 +55,21 @@ export function Watch(dependencies: string[]|Function) {
             return func.call(target)
         })
     }
-}
+}*/
 
-export function CustomElement(name: string) {
-    return function(target: any) {
-        window.customElements.define(name, target)
+export function CustomElement(name: string|undefined = undefined) {
+    return function(target: JDOMComponent) {
+        if (name === undefined) {
+            JDOM.registerComponent([target])
+            return;
+        }
+        JDOM.registerComponent(name, target);
     }
 }
 
+/*
 export function Attribute(options: AttributeOptions = {}) {
     return (target: any, key: string) => {
         target.addAttributeListener(key, options)
     }
-}
+}*/

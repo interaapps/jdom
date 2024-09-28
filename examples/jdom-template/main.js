@@ -1,100 +1,65 @@
 import { $, $r, state, computed, html, JDOMComponent } from '../../index.js';
 
-class Test2 extends JDOMComponent {
-    test = state('Test2')
 
-    constructor() {
-        super()
+
+
+class CounterComponent extends JDOMComponent {
+    counter = state(0)
+
+    setup() {
+        this.counter.value = 5
     }
+
     render() {
-        console.log(this.test)
-        return html`a: ${this.test}`
+        return html`
+            <div>
+                <h2>in func comp</h2>
+                <span>${this.counter}</span> - <span>${computed(() => this.counter.value * 5)}</span>
+                <br>
+                <button @click=${() => this.counter.value++}>UP</button>
+                <button @click=${() => this.counter.value--}>DOWN</button>
+            </div>
+        `
     }
 }
-$r('test-app', Test2)
 
-class Test {
-    image = state('Test1')
-    create(){
-        html`<${Test2} test=${this.image} /> <button @click=${() => this.image.value = 'OOO'}>OO</button>`.appendTo(document.body);
-    }
-}
-
-new Test().create()
+$r('counter-component', CounterComponent)
 
 
-
-
-const tasks = state([]);
-
-// Function to add a new task
-const addTask = text => {
-    console.log('Added', text)
-    if (text) {
-        tasks.value = [...tasks.value, { text, done: false }];
-    }
-    return true
-};
-
-// Function to toggle the done state of a task
-const toggleDone = index => {
-    tasks.value = tasks.value.map((task, i) =>
-        i === index ? { ...task, done: !task.done } : task
-    );
-};
-
-// Function to remove a task
-const removeTask = index => {
-    tasks.value = tasks.value.filter((_, i) => i !== index);
-};
-
-// Define the component for a single task
-const TaskItem = ({ task, index }) => html`
-  <li class="${task.done ? 'done' : ''}">
-    <span @click=${() => toggleDone(index)}>
-      ${task.text}
-    </span>
-    <button @click=${() => removeTask(index)}>Remove</button>
-  </li>
-`;
-
-// Define the component for the task input form
-const TaskInput = () => {
-    let input = state('');
-
-    const enterEvent = e => {
-        if (e.key === 'Enter') {
-            addTask(input.value)
-            input.value = ''
-        }
-    }
-
-    const clickEvent = () => {
-        addTask(input.value)
-        input.value = ''
-    }
-
+const ExampleFunction = ({ counter }) => {
     return html`
         <div>
-          <input type="text" placeholder="Add a new task" :bind=${input}
-            @keyup=${enterEvent}
-          />
-          <button @click=${clickEvent}>
-            Add Task
-          </button>
+            <h2>in func comp</h2>
+            <span>${counter}</span> - <span>${computed(() => counter.value * 5)}</span>
+            <br>
+            <button @click=${() => counter.value++}>UP</button>
+            <button @click=${() => counter.value--}>DOWN</button>
         </div>
-      `;
-};
+    `
+}
 
-// Define the main app component combining the task list and the input form
-const App = () => html`
-  <div id="todo-app">
-    ${TaskInput()}
-    <ul>
-      ${computed(() => tasks.value.map((task, index) => TaskItem({ task, index })), [tasks])}
-    </ul>
-  </div>
-`;
+const exampleCounter = state(0)
+html`
+    <div>
+        <h2>outer</h2>
+        <span>${exampleCounter}</span> - <span>${computed(() => exampleCounter.value * 5)}</span>
+        <br>
+        <button @click=${() => exampleCounter.value++}>UP</button>
+        <button @click=${() => exampleCounter.value--}>DOWN</button>
+    </div>
+    
+    
+    <${ExampleFunction} counter=${exampleCounter} />
 
-// Attach the main app component to the document
-$(document.body).append(App());
+
+    <${CounterComponent} counter=${exampleCounter} />
+    
+    <div>
+        <span style=${{
+            opacity: computed(() => exampleCounter.value / 100)
+        }}>Test1</span>
+        <span class=${{
+            test: exampleCounter
+        }}>Test1</span>
+    </div>
+`.appendTo(document.body)

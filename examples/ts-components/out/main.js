@@ -9,17 +9,19 @@ var __legacyDecorateClassTS = function(decorators, target, key, desc) {
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 
-// /Users/juliangojani/dev/jdom/src/Hook.js
+// ../../src/Hook.js
 class Hook {
   listeners = [];
   deleteListeners = [];
   #destroyed = false;
   #alreadyProxied = false;
+  static TRACKING = [];
+  static IS_TRACKING = false;
   constructor(value) {
     this.setValue(value);
     return new Proxy(this, {
       get: (target, prop) => {
-        if (Object.hasOwn(target, prop) || (prop in target) || prop === "value") {
+        if (Object.hasOwn(target, prop) || prop in target || prop === "value") {
           return Reflect.get(target, prop);
         }
         if (typeof target._value === "object" && !Array.isArray(target._value) && target._value !== null) {
@@ -40,10 +42,14 @@ class Hook {
         return Reflect.get(target, prop);
       },
       set: (target, prop, value2) => {
-        if (Object.hasOwn(target, prop) || (prop in target) || prop === "value") {
+        if (Object.hasOwn(target, prop) || prop in target || prop === "value") {
+          if (target[prop] === value2)
+            return true;
           return Reflect.set(target, prop, value2);
         }
         if (typeof target._value === "object" && !Array.isArray(target._value) && target._value !== null) {
+          if (target._value[prop] === value2)
+            return true;
           return Reflect.set(target._value, prop, value2);
         }
         return Reflect.set(target, prop, value2);
@@ -53,14 +59,13 @@ class Hook {
   setValue(val) {
     const old = this._value;
     this._value = val;
-    if (typeof val === "object" && !Array.isArray(val) && val !== null) {
-      this._value = this.#createObserver(val);
-    }
     this.dispatchListener(old);
   }
   #createObserver(val) {
     return new Proxy(val, {
       set: (target, prop, value) => {
+        if (val === val[prop])
+          return true;
         val[prop] = value;
         this.setValue(val);
         return Reflect.set(val, prop, value);
@@ -74,6 +79,7 @@ class Hook {
     this.setValue(val);
   }
   get value() {
+    Hook.track(this);
     return this._value;
   }
   destroy() {
@@ -82,8 +88,11 @@ class Hook {
   }
   dispatchListener(oldVal) {
     for (let listener of this.listeners) {
-      if (listener.call(this, this._value, oldVal) === true)
-        break;
+      try {
+        if (listener.call(this, this._value, oldVal) === true)
+          break;
+      } catch (e) {
+      }
     }
   }
   addListener(listener) {
@@ -96,26 +105,56 @@ class Hook {
   toString() {
     return `${this.value}`;
   }
+  static track(hook) {
+    if (Hook.IS_TRACKING) {
+      Hook.TRACKING.push(hook);
+    }
+  }
+  static enableTracking() {
+    Hook.IS_TRACKING = true;
+  }
+  static disableTracking() {
+    Hook.IS_TRACKING = false;
+    Hook.clearTracked();
+  }
+  static getTracked() {
+    return Hook.TRACKING;
+  }
+  static clearTracked() {
+    Hook.TRACKING = [];
+  }
 }
 
-// /Users/juliangojani/dev/jdom/src/JDOMComponent.js
-class JDOMComponent extends HTMLElement {
+// ../../src/JDOMComponent.js
+class JDOMComponent extends (typeof HTMLElement === "undefined" ? class {
+} : HTMLElement) {
   mainElement = null;
+  #jdomConnectedAlready = false;
+  options;
   constructor(options = {}) {
+    console.log("test");
     super();
     this.options = options;
     this.registerAttributeListener();
   }
-  connectedCallback() {
-    const { shadowed = true, style = null } = this.options;
+  async connectedCallback() {
+    if (this.#jdomConnectedAlready)
+      return;
+    this.addEventListener(":attach", () => this.attach());
+    this.addEventListener(":attached", () => this.attached());
+    this.addEventListener(":detach", () => this.detach());
+    this.addEventListener(":detached", () => this.detached());
+    this.#jdomConnectedAlready = true;
+    const { shadowed = false, style = null } = this.options;
     this.registerAttributeListener();
     this.mainElement = this;
     if (shadowed) {
       this.mainElement = this.attachShadow({ mode: "closed" });
-      const content = this.render();
-      if (content) {
-        new JDOM_default(this.mainElement).append(content);
-      }
+    }
+    await this.setup();
+    const content = await this.render();
+    if (content) {
+      new JDOM_default(this.mainElement).append(content);
     }
     if (style) {
       this.addStyle(style);
@@ -170,6 +209,16 @@ class JDOMComponent extends HTMLElement {
       this.attributeListeners = [];
     this.attributeListeners.push({ key, options });
   }
+  setup() {
+  }
+  detach() {
+  }
+  detached() {
+  }
+  attach() {
+  }
+  attached() {
+  }
   addStyle(style) {
     const styleEl = document.createElement("style");
     styleEl.textContent = style;
@@ -177,27 +226,44 @@ class JDOMComponent extends HTMLElement {
   }
   render() {
   }
-  style() {
+  styles() {
     return;
   }
+  static unshadowed = class JDOMUnshadowedComponent extends JDOMComponent {
+    constructor(options = {}) {
+      super({ shadowed: false, ...options });
+    }
+  };
 }
 
-// /Users/juliangojani/dev/jdom/src/hooks.js
+// ../../src/hooks.js
 function state(initialValue) {
   return new Hook(initialValue);
 }
-function computed(callable2, dependencies = []) {
+function computed(callable2, dependencies = undefined) {
   const hook = new Hook(callable2());
-  for (let dependency of dependencies) {
-    dependency.listeners.push(() => {
-      hook.value = callable2();
-    });
+  if (dependencies === undefined) {
+    Hook.enableTracking();
+    callable2();
+    for (const trackedElement of Hook.getTracked()) {
+      trackedElement.addListener(() => {
+        hook.value = callable2();
+      });
+    }
+    Hook.disableTracking();
+  } else {
+    for (let dependency of dependencies) {
+      dependency.listeners.push(() => {
+        hook.value = callable2();
+      });
+    }
   }
   return hook;
 }
 
-// /Users/juliangojani/dev/jdom/src/JDOM.js
+// ../../src/JDOM.js
 class JDOM2 {
+  static compIndex = 0;
   constructor(element, parent = undefined) {
     if (typeof parent === "undefined")
       parent = document;
@@ -728,6 +794,24 @@ class JDOM2 {
       window.customElements.define(tag, component);
       return component;
     }
+    if (Array.isArray(tag)) {
+      tag.forEach((clazz) => {
+        const str = clazz.name;
+        const camelCaseStr = str.charAt(0).toLowerCase() + str.slice(1);
+        let name = camelCaseStr.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+        name = name.includes("-") ? name : `jdom-${name}`;
+        const alreadyRegisted = window.customElements.get(name);
+        if (alreadyRegisted) {
+          if (alreadyRegisted === clazz) {
+            return;
+          } else {
+            name += `-${++compIndex.value}`;
+          }
+        }
+        window.customElements.define(name, clazz);
+      });
+      return;
+    }
     Object.entries(tag).forEach(([name, comp]) => {
       window.customElements.define(name, comp);
     });
@@ -750,7 +834,7 @@ class JDOM2 {
 }
 var JDOM_default = JDOM2;
 
-// /Users/juliangojani/dev/jdom/src/template/JDOMTemplateParser.js
+// ../../src/template/JDOMTemplateParser.js
 class JDOMTemplateParser {
   autoCloseTags = ["hr", "br", "input", "img", "meta", "link", "wbr", "source", "keygen", "spacer", "isindex", "track", "param", "embed", "base", "area", "col", "!doctype"];
   constructor() {
@@ -1087,7 +1171,7 @@ class JDOMTemplateParser {
   }
 }
 
-// /Users/juliangojani/dev/jdom/src/template/TemplateDOMAdapter.js
+// ../../src/template/TemplateDOMAdapter.js
 class TemplateDOMAdapter {
   ifQueryParts = [];
   constructor(parsed) {
@@ -1123,12 +1207,19 @@ class TemplateDOMAdapter {
         for (const [key, value] of conf.attributes) {
           if (key === ":bind") {
             elAttribs.value = value;
+          } else if (key === ":if" || key === ":else-if" || key === ":else") {
           } else {
             elAttribs[key] = value;
           }
         }
-        const newEl = conf.tag(elAttribs);
-        return this.createFromValue({ value: newEl });
+        let called = conf.tag(elAttribs);
+        let newEl = this.createFromValue({ value: called });
+        for (const [key, value] of conf.attributes) {
+          if (key === ":if" || key === ":else-if" || key === ":else") {
+            [newEl] = this.addControlFlow(key, value, newEl, false, false, () => null);
+          }
+        }
+        return newEl;
       }
     }
     if (!el) {
@@ -1153,6 +1244,16 @@ class TemplateDOMAdapter {
             if (typeof value2 === "object") {
               elem.style = "";
               Object.entries(value2).forEach(([key3, value3]) => {
+                if (value3 instanceof Hook) {
+                  const hook = value3;
+                  const listener = (v) => elem.style[key3] = v;
+                  elem.addEventListener(":detached", () => hook.removeListener(listener));
+                  elem.addEventListener(":attached", () => {
+                    hook.addListener(listener);
+                    listener(hook.value);
+                  });
+                  value3 = hook.value;
+                }
                 elem.style[key3] = value3;
               });
               return;
@@ -1165,6 +1266,26 @@ class TemplateDOMAdapter {
                 classes = value2;
               } else if (typeof value2 === "object") {
                 Object.entries(value2).forEach(([key3, value3]) => {
+                  if (value3 instanceof Hook) {
+                    const hook = value3;
+                    const listener = (v) => {
+                      console.log("Hok");
+                      if (v && !elem.classList.contains(key3)) {
+                        elem.classList.add(key3);
+                      } else if (!v && elem.classList.contains(key3)) {
+                        elem.classList.remove(key3);
+                      }
+                    };
+                    elem.addEventListener(":detached", () => {
+                      console.log("hok bom");
+                      hook.removeListener(listener);
+                    });
+                    elem.addEventListener(":attached", () => {
+                      hook.addListener(listener);
+                      listener(hook.value);
+                    });
+                    value3 = hook.value;
+                  }
                   if (value3) {
                     classes.push(key3);
                   }
@@ -1176,16 +1297,25 @@ class TemplateDOMAdapter {
             }
           }
           if (usingJDOMComponent) {
-            elem[key2] = value2;
+            if (key2.endsWith(".attr")) {
+              elem.setAttribute(key2.replace(".attr", ""), value2);
+            } else if (key2.endsWith(".unhook")) {
+              elem[key2] = value2;
+            } else if (elem[key2] instanceof Hook && !(value2 instanceof Hook)) {
+              elem[key2].value = value2;
+            } else {
+              elem[key2] = value2;
+            }
             return;
           }
           elem.setAttribute(key2, value2);
         };
         if (value instanceof Hook) {
-          value.addListener(() => {
-            setValue(key, value.value);
+          const listener = value.addListener(() => {
+            setValue(key, value);
           });
-          setValue(key, value.value);
+          setValue(key, value);
+          elem.addEventListener(":detached", () => value.removeListener(listener));
         } else {
           setValue(key, value);
         }
@@ -1202,7 +1332,7 @@ class TemplateDOMAdapter {
               model.value = elem.value;
             }
           });
-          model.listeners.push((val) => {
+          model.addListener((val) => {
             if (elem.value !== model.value) {
               elem.value = val;
               elem.dispatchEvent(new InputEvent("input:value"));
@@ -1248,6 +1378,14 @@ class TemplateDOMAdapter {
       }
       if (key.startsWith("@")) {
         events[key.substring(1)] = value;
+      } else if (key === ":ref") {
+        if (value instanceof Hook) {
+          value.value = el;
+        } else if (typeof value.value === "function") {
+          value.value(el);
+        } else {
+          console.error(":ref value is not a type of Hook or function.");
+        }
       } else if (key === ":bind") {
         model = value;
       } else if (key === ":html") {
@@ -1258,31 +1396,8 @@ class TemplateDOMAdapter {
           });
         }
         el.innerHTML = getValue();
-      } else if (key === ":if") {
-        let destroy;
-        [el, addChildren, destroy] = this.bindIf(el, value, addChildren, addedChildren, setup);
-        this.ifQueryParts.push(["IF", value, el, [value], destroy]);
-      } else if (key === ":else-if") {
-        const [type, state2, _, deps] = this.ifQueryParts.pop();
-        const comp = computed(() => {
-          for (const dep of deps) {
-            if (dep.value)
-              return false;
-          }
-          return value.value;
-        }, [value, ...deps]);
-        let destroy;
-        [el, addChildren, destroy] = this.bindIf(el, comp, addChildren, addedChildren, setup);
-        this.ifQueryParts.push(["ELSE-IF", comp, el, [...deps, comp], destroy]);
-      } else if (key === ":else") {
-        const [type, state2, _, deps] = this.ifQueryParts.pop();
-        [el, addChildren] = this.bindIf(el, computed(() => {
-          for (const dep of deps) {
-            if (dep.value)
-              return false;
-          }
-          return true;
-        }, [state2, ...deps]), addChildren, addedChildren, setup);
+      } else if (key === ":if" || key === ":else" || key === ":else-if") {
+        [el, addChildren] = this.addControlFlow(key, value, el, addChildren, addedChildren, setup);
       } else if (key === "@:create") {
         onCreate = value;
       } else {
@@ -1293,6 +1408,36 @@ class TemplateDOMAdapter {
       setup();
     }
     return el;
+  }
+  addControlFlow(key, value, el, addChildren, addedChildren, setup) {
+    let deps = null;
+    let destroy = () => null;
+    if (key === ":if") {
+      [el, addChildren, destroy] = this.bindIf(el, value, addChildren, addedChildren, setup);
+      this.ifQueryParts.push(["IF", value, el, [value], destroy]);
+    } else if (key === ":else-if") {
+      const [, , , deps2] = this.ifQueryParts.pop();
+      const comp = computed(() => {
+        for (const dep of deps2) {
+          if (dep.value)
+            return false;
+        }
+        return value.value;
+      }, [value, ...deps2]);
+      let destroy2;
+      [el, addChildren, destroy2] = this.bindIf(el, comp, addChildren, addedChildren, setup);
+      this.ifQueryParts.push(["ELSE-IF", comp, el, [...deps2, comp], destroy2]);
+    } else if (key === ":else") {
+      const [type, state2, _, deps2] = this.ifQueryParts.pop();
+      [el, addChildren] = this.bindIf(el, computed(() => {
+        for (const dep of deps2) {
+          if (dep.value)
+            return false;
+        }
+        return true;
+      }, [state2, ...deps2]), addChildren, addedChildren, setup);
+    }
+    return [el, addChildren, destroy, deps];
   }
   bindIf(el, state2, addChildren = true, addedChildren = false, setup = () => {
   }) {
@@ -1318,12 +1463,12 @@ class TemplateDOMAdapter {
           return;
         lastValue = value;
         if (value) {
-          toRepl = this.replaceElement(toRepl, savedElement);
-          el = savedElement;
           if (!addedChildren) {
-            setup(el);
+            setup(savedElement);
             addedChildren = true;
           }
+          toRepl = this.replaceElement(toRepl, savedElement);
+          el = savedElement;
         } else {
           toRepl = this.replaceElement(toRepl, commentElement);
           el = commentElement;
@@ -1341,72 +1486,65 @@ class TemplateDOMAdapter {
     if (value instanceof Hook) {
       const state2 = value;
       const isArray = Array.isArray(state2.value);
-      let removeEl = () => {
-      };
       let outputElement = null;
+      let stateListener;
       const hookListener = state2.addListener((val) => {
         if (!(isArray && Array.isArray(val) || !isArray && !Array.isArray(val))) {
           if (outputElement) {
-            let elements = this.createFromValue({ value });
-            if (!Array.isArray(elements)) {
-              elements = [elements];
-            }
-            if (elements.length > 0) {
-              const newElements = [];
-              removeEl = () => {
-                newElements.forEach((e) => this.removeElement(e));
-              };
-              const firstEl = elements.shift();
-              this.replaceElement(outputElement, firstEl);
-              for (const item of elements) {
-                this.beforeElement(firstEl, item);
-                newElements.push(item);
-              }
-            } else {
-              removeEl();
-            }
+            this.replaceElement(outputElement, this.createFromValue({ value }));
             value.removeListener(hookListener);
+            if (stateListener) {
+              state2.removeListener(stateListener);
+            }
           }
         }
       });
-      let stateListener;
       if (isArray) {
-        const comment = document.createComment("JDOM-Templating:arrhook");
+        const comment = document.createComment("JDOM-Templating:arrhook1");
         outputElement = comment;
         let elements = [];
-        removeEl = () => elements.forEach((e) => e.forEach((i) => this.removeElement(i)));
-        const setElements = (prepend = true) => {
+        const setElements = () => {
           for (const item of elements) {
-            item.elements.forEach((e) => this.removeElement(e));
-            elements = elements.filter((e) => e !== item);
+            this.removeElement(item);
           }
-          let i = 0;
           if (!Array.isArray(state2.value)) {
             this.replaceElement(outputElement, this.createFromValue({ value: state2.value }));
             state2.removeListener(stateListener);
             return;
           }
+          let lastEl = comment;
+          let i = 0;
           for (const item of state2.value) {
             let itemEls = this.createFromValue({ value: item });
             if (!Array.isArray(itemEls))
               itemEls = [itemEls];
-            elements.push({
-              key: ++i,
-              elements: itemEls
+            const currentIndex = i++;
+            elements = [...elements, ...itemEls];
+            itemEls.forEach((e) => {
+              lastEl = this.afterElement(lastEl, e);
+              const addReplaceListener = (toRepl) => {
+                toRepl.addEventListener(":replaced_with", ({ detail: { to } }) => {
+                  for (const e2 of to) {
+                    addReplaceListener(e2);
+                    elements.push(e2);
+                  }
+                });
+                toRepl.addEventListener(":attached", () => {
+                  elements.push(toRepl);
+                });
+                toRepl.addEventListener(":detached", () => {
+                  elements = elements.filter((e2) => e2 !== toRepl);
+                });
+              };
+              addReplaceListener(lastEl);
             });
-            if (prepend)
-              itemEls.forEach((e) => this.beforeElement(comment, e));
           }
         };
         stateListener = state2.addListener(() => {
           setElements();
         });
-        setElements(false);
-        const out = [];
-        for (const item of elements) {
-          item.elements.forEach((e) => out.push(e));
-        }
-        return [...out, comment];
+        setElements();
+        return [comment, ...elements];
       } else if (typeof state2.value === "string" || typeof state2.value === "number" || typeof state2.value === "boolean") {
         outputElement = this.createText({ value: state2.value });
         const listener = state2.addListener(() => {
@@ -1420,7 +1558,7 @@ class TemplateDOMAdapter {
         return outputElement;
       } else {
         outputElement = this.createFromValue({ value: state2.value });
-        state2.addListener(() => {
+        stateListener = state2.addListener(() => {
           let element = this.createFromValue({ value: state2.value });
           outputElement = this.replaceElement(outputElement, element);
         });
@@ -1462,28 +1600,33 @@ class TemplateDOMAdapter {
     return elements;
   }
   removeElement(el) {
-    el.dispatchEvent(new CustomEvent("jdom:detach"));
+    el.dispatchEvent(new CustomEvent(":detach"));
     el.remove();
+    el.dispatchEvent(new CustomEvent(":detached"));
   }
   replaceElement(from, to) {
     const replElements = Array.isArray(from) ? [...from] : [from];
     const endElements = Array.isArray(to) ? [...to] : [to];
+    const finalEndElements = [...endElements];
     if (endElements.length === 0)
       endElements.push(document.createComment("JDOM-Templating:REPLACEMENT"));
     const finalEnd = [...endElements];
     const firstEl = replElements.shift();
     const firstEndEl = endElements.shift();
-    firstEl.dispatchEvent(new CustomEvent("jdom:replace_with", { to }));
-    firstEl.dispatchEvent(new CustomEvent("jdom:detach"));
+    firstEl.dispatchEvent(new CustomEvent(":replace_with", { detail: { to: finalEndElements } }));
+    firstEl.dispatchEvent(new CustomEvent(":detach"));
     firstEndEl.dispatchEvent(new CustomEvent(":child_attach"));
     firstEl.replaceWith(firstEndEl);
     replElements.forEach((e) => this.removeElement(e));
-    endElements.forEach((e) => {
-      this.afterElement(firstEndEl, e);
-    });
-    firstEl.dispatchEvent(new CustomEvent("jdom:replaced_with", { to }));
-    firstEl.dispatchEvent(new CustomEvent("jdom:detached"));
+    firstEl.dispatchEvent(new CustomEvent(":detached"));
     firstEndEl.dispatchEvent(new CustomEvent(":child_attached"));
+    let lastEl = firstEndEl;
+    firstEndEl.dispatchEvent(new CustomEvent(":attach"));
+    endElements.forEach((e) => {
+      lastEl = this.afterElement(lastEl, e);
+    });
+    firstEndEl.dispatchEvent(new CustomEvent(":attached"));
+    firstEl.dispatchEvent(new CustomEvent(":replaced_with", { detail: { to: finalEndElements } }));
     return finalEnd;
   }
   appendElement(to, el) {
@@ -1499,6 +1642,7 @@ class TemplateDOMAdapter {
     to.after(el);
     to.dispatchEvent(new CustomEvent(":child_attached_after"));
     el.dispatchEvent(new CustomEvent(":attached"));
+    return el;
   }
   beforeElement(to, el) {
     to.dispatchEvent(new CustomEvent(":child_attach_before"));
@@ -1523,14 +1667,14 @@ class TemplateDOMAdapter {
   }
 }
 
-// /Users/juliangojani/dev/jdom/src/template/TemplateJDOMAdapter.js
+// ../../src/template/TemplateJDOMAdapter.js
 class TemplateJDOMAdapter extends TemplateDOMAdapter {
   create() {
     return new JDOM_default(super.create());
   }
 }
 
-// /Users/juliangojani/dev/jdom/src/template/template.js
+// ../../src/template/template.js
 function html(strings, ...values) {
   const parser = JDOMTemplateParser.fromTemplate(strings, ...values);
   const parsed = parser.parse();
@@ -1550,7 +1694,7 @@ function css(strings, ...values) {
   return out;
 }
 
-// /Users/juliangojani/dev/jdom/index.js
+// ../../index.js
 var $n = JDOM_default.new;
 var $c = JDOM_default.component;
 var $r = JDOM_default.registerComponent;
@@ -1559,79 +1703,59 @@ var $escHTML = JDOM_default.escapeHTML;
 var html2 = html;
 var css2 = css;
 var JDOMComponent6 = JDOMComponent;
+var computed2 = computed;
 
-// /Users/juliangojani/dev/jdom/src/decorators.ts
-function State() {
-  return function(target, key) {
-    const value = state(target[key]?.value);
-    Object.defineProperty(target, key, {
-      get() {
-        return value;
-      },
-      set(newValue) {
-        value.value = newValue;
-      }
-    });
-  };
-}
-function Computed(dependencies) {
-  return function(target, key) {
-    const func = target[key];
-    const deps = typeof dependencies === "function" ? dependencies(target) : dependencies.map((d) => target[d]);
-    let hook;
-    return {
-      get() {
-        if (!hook) {
-          hook = computed(() => {
-            return func.call(target);
-          }, deps);
-        }
-        return hook;
-      }
-    };
-  };
-}
-function CustomElement(name) {
+// ../../src/decorators.ts
+function CustomElement(name = undefined) {
   return function(target) {
-    window.customElements.define(name, target);
+    if (name === undefined) {
+      JDOM_default.registerComponent([target]);
+      return;
+    }
+    JDOM_default.registerComponent(name, target);
   };
 }
 
 // main.ts
 class ToDoApp extends JDOMComponent6 {
+  tasks = new Hook([]);
+  tasksList = computed2(() => this.tasks.value.map((task, index) => html2`
+        <li class=${{ done: task.done }}>
+            <span @click=${() => this.toggleDone(index)}>
+                ${task.text}
+            </span>
+            <button @click=${() => this.removeTask(index)}>Remove</button>
+        </li>
+    `));
+  newTaskText = new Hook("");
   constructor() {
     super();
-    this.tasks = [];
-    this.newTaskText = "";
   }
   addTask() {
     if (this.newTaskText.value.trim()) {
-      this.tasks = [...this.tasks.value, { text: this.newTaskText.value.trim(), done: false }];
-      this.newTaskText = "";
+      this.tasks.value = [...this.tasks.value, { text: this.newTaskText.value.trim(), done: false }];
+      this.newTaskText.value = "";
     }
   }
   toggleDone(index) {
-    this.tasks = this.tasks.value.map((task, i) => index === i ? { ...task, done: !task.done } : task);
+    this.tasks.value = this.tasks.value.map((task, i) => index === i ? { ...task, done: !task.done } : task);
   }
   removeTask(index) {
-    this.tasks = this.tasks.value.filter((_, i) => i !== index);
-  }
-  tasksList() {
-    return this.tasks.value.map((task, index) => html2`
-            <li class=${{ done: task.done }}>
-                <span @click=${() => this.toggleDone(index)}>
-                    ${task.text}
-                </span>
-                <button @click=${() => this.removeTask(index)}>Remove</button>
-            </li>
-        `);
+    this.tasks.value = this.tasks.value.filter((_, i) => i !== index);
   }
   render() {
+    console.log(this.tasks);
+    console.log(this.tasksList);
+    console.log(this.tasks);
     return html2`
             <div id="todo-app">
-                <input type="text" placeholder="Add a new task" :bind=${this.newTaskText}
-                       @keyup=${(e) => e.key === "Enter" && this.addTask()} />
-                <button @click=${this.addTask.bind(this)}>Add Task</button>
+                <input 
+                    type="text" 
+                    placeholder="Add a new task" 
+                    :bind=${this.newTaskText}
+                    @keyup=${(e) => e.key === "Enter" && this.addTask()}
+                />
+                <button @click=${() => this.addTask()}>Add Task</button>
                 <ul>
                     ${this.tasksList}
                 </ul>
@@ -1651,15 +1775,6 @@ class ToDoApp extends JDOMComponent6 {
         `;
   }
 }
-__legacyDecorateClassTS([
-  State()
-], ToDoApp.prototype, "tasks", undefined);
-__legacyDecorateClassTS([
-  State()
-], ToDoApp.prototype, "newTaskText", undefined);
-__legacyDecorateClassTS([
-  Computed((s) => [s.tasks])
-], ToDoApp.prototype, "tasksList", null);
 ToDoApp = __legacyDecorateClassTS([
   CustomElement("todo-app")
 ], ToDoApp);

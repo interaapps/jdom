@@ -114,8 +114,8 @@ export default class TemplateDOMAdapter {
                                 Object.entries(value).forEach(([key, value]) => {
                                     if (value instanceof Hook) {
                                         const hook = value
-
                                         const listener = v => {
+                                            console.log('Hok')
                                             if (v && !elem.classList.contains(key)) {
                                                 elem.classList.add(key)
                                             } else if (!v && elem.classList.contains(key)) {
@@ -123,6 +123,7 @@ export default class TemplateDOMAdapter {
                                             }
                                         }
                                         elem.addEventListener(':detached', () => {
+                                            console.log('hok bom')
                                             hook.removeListener(listener)
                                         })
                                         elem.addEventListener(':attached', () => {
@@ -141,27 +142,34 @@ export default class TemplateDOMAdapter {
                             return
                         }
                     }
+
+                    // JDOMComponent property reactivity
                     if (usingJDOMComponent) {
                         if (key.endsWith('.attr')) {
                             elem.setAttribute(key.replace('.attr', ''), value)
                         } else if (key.endsWith('.unhook')) {
                             elem[key] = value
-                        } else if (elem[key] instanceof Hook) {
+                        } else if (elem[key] instanceof Hook && !(value instanceof Hook)) {
+                            // Set the value of hook once
                             elem[key].value = value
                         } else {
+                            // If both types are a hook, the inner element will be overwritten
                             elem[key] = value
                         }
 
                         return
                     }
+                    console.log(key, value)
                     elem.setAttribute(key, value)
                 }
 
                 if (value instanceof Hook) {
-                    value.addListener(() => {
-                        setValue(key, value.value)
+                    const listener = value.addListener(() => {
+                        setValue(key, value)
                     })
-                    setValue(key, value.value)
+                    setValue(key, value)
+
+                    elem.addEventListener(':detached', () => value.removeListener(listener))
                 } else {
                     setValue(key, value)
                 }
@@ -233,6 +241,8 @@ export default class TemplateDOMAdapter {
 
             if (key.startsWith('@')) {
                 events[key.substring(1)] = value
+            } else if (key.startsWith('!')) {
+                attributes.push([key.substring(1), false])
             } else if(key === ':ref') {
                 if (value instanceof Hook) {
                     value.value = el

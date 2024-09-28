@@ -17,7 +17,8 @@ export default class TemplateStaticHTMLAdapter {
 
         el += `<${conf.tag}`
 
-        Object.entries(conf.attributes).forEach(([key, value]) => {
+        Object.entries(conf.attributes).forEach(([_, [key, value]]) => {
+            console.log(key, value)
             if (key.startsWith('@')) {
                 key = `on${key.substring(1)}`
             } else if (key === ':if') {
