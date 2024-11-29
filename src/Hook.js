@@ -110,8 +110,7 @@ export default class Hook {
     dispatchListener(oldVal) {
         for (let listener of this.listeners) {
             try {
-                if (listener.call(this, this._value, oldVal) === true)
-                    break
+                listener.call(this, this._value, oldVal)
             } catch (e) {}
         }
     }
@@ -134,6 +133,32 @@ export default class Hook {
 
     toString() {
         return `${this.value}`
+    }
+
+    /**
+     * computed((val) => `Hello ${val}`)
+     *
+     * @param {(val: T) => any} fn
+     * @return {Hook}
+     */
+    computed(fn) {
+        const computedHook = new Hook(fn(this.value))
+
+        this.addListener(() => {
+            computedHook.value = fn(this.value)
+        })
+
+        return computedHook
+    }
+
+    /**
+     * shorthand for computed
+     *
+     * @param {(val: T) => any} fn
+     * @return {Hook}
+     */
+    $(fn) {
+        return this.computed(fn)
     }
 
     /**
