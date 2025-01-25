@@ -57,7 +57,6 @@ export function Watch(dependencies: string[]|Function) {
  *
  * @param {string|undefined} name
  * @return {(function(*): void)|*}
- * @constructor
  */
 export function CustomElement(name = undefined) {
     return function(target) {
