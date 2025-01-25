@@ -3,10 +3,6 @@ import Hook from "./Hook.js";
 import JDOM from "./JDOM.js";
 import JDOMComponent from "./JDOMComponent.js";
 
-interface AttributeOptions {
-    name?: String;
-}
-
 /* export function State() {
     return function (target: any, key: string) {
         const value = _state(target[key]?.value);
@@ -57,8 +53,14 @@ export function Watch(dependencies: string[]|Function) {
     }
 }*/
 
-export function CustomElement(name: string|undefined = undefined) {
-    return function(target: any) {
+/**
+ *
+ * @param {string|undefined} name
+ * @return {(function(*): void)|*}
+ * @constructor
+ */
+export function CustomElement(name = undefined) {
+    return function(target) {
         if (name === undefined) {
             JDOM.registerComponent([target])
             return;

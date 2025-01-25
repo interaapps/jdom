@@ -1,17 +1,25 @@
 {
   "name": "jdomjs",
-  "version": "3.1.14",
+  "version": "3.1.15",
 
   "description": "A wrapper for query selector and html elements",
   "main": "./index.js",
   "exports": {
     ".": "./index.js",
     "./dist.js": "./dist/jdom.js",
-    "./**/*": "./src/**/*",
-    "./*": "./src/*",
-    "./src/*": "./src/*"
+    "./src/*": {
+      "default": "./src/*",
+      "import": "./src/*",
+      "require": "./src/*",
+      "types": [
+        "./types/src/*.d.ts",
+        "./types/src/*"
+      ]
+    }
   },
+  "types": "types/index.d.ts",
   "scripts": {
+    "ts": "npx -p typescript tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "build": "webpack --config webpack.config.js"
   },
   "repository": {

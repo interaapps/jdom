@@ -1,4 +1,4 @@
-import '../html-typedefs.js'
+import './html-typedefs.js'
 import Hook from './Hook.js'
 import JDOMComponent from './JDOMComponent.js'
 import {state} from './hooks.js'
@@ -856,8 +856,8 @@ class JDOM {
     /**
      * Registers a webcomponent
      *
-     * @param {string|Object.<string, Node|HTMLElement|JDOMComponent>|Node|HTMLElement|JDOMComponent|(Node|HTMLElement|JDOMComponent)[]} tag
-     * @param {Node|HTMLElement|JDOMComponent|undefined} component
+     * @param {string|Object.<string, Node|HTMLElement|typeof JDOMComponent>|Node|HTMLElement|typeof JDOMComponent|(Node|HTMLElement|typeof JDOMComponent)[]} tag
+     * @param {Node|HTMLElement|typeof JDOMComponent|undefined} component
      */
     static registerComponent(tag, component = undefined) {
         if (typeof  tag === 'string') {

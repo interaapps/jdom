@@ -1,0 +1,14 @@
+export { default as JDOM } from "./src/JDOM.js";
+export * from "./src/hooks.js";
+export * from "./src/decorators.js";
+export { default as JDOMComponent } from "./src/JDOMComponent.js";
+export { default as JDOMShadowComponent } from "./src/JDOMShadowComponent.js";
+export { default as Hook } from "./src/Hook.js";
+export function $(el: Node | JDOM | NodeList | string, parent?: Element | Window): JDOM;
+export const $n: typeof JDOM.new;
+export const $c: typeof JDOM.component;
+export const $r: typeof JDOM.registerComponent;
+export const $h: typeof JDOM.fromHTML;
+export const $escHTML: typeof JDOM.escapeHTML;
+import JDOM from './src/JDOM.js';
+export { html, comp, css } from "./src/template/template.js";
