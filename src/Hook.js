@@ -117,7 +117,7 @@ export default class Hook {
 
     /**
      * @param {function(val: T)} listener
-     * @return {function(val: T)}
+     * @return {function(T)}
      */
     addListener(listener) {
         this.listeners.push(listener)

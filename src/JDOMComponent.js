@@ -173,6 +173,7 @@ export default class JDOMComponent extends (typeof HTMLElement === 'undefined' ?
 
     /**
      * @param {Event} event
+     * @return {boolean}
      */
     dispatchEvent(event) {
         super.dispatchEvent(event)

@@ -1,6 +1,7 @@
 {
   // Change this to match your project
   "include": [
+    "index.js",
     "src/**/*"
   ],
   "compilerOptions": {
@@ -19,8 +20,11 @@
     // go to js file when using IDE functions like
     // "Go to Definition" in VSCode
     "declarationMap": true,
+    "moduleResolution": "bundler",
+    "target": "ES6",
+    "lib": ["DOM"],
     "paths": {
-      "src/**/*": ["src/types/**/*"],
+      "src/**/*": ["src/types/**/*", "src/types/index.d.ts"],
     }
   }
 }

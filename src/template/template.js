@@ -1,3 +1,4 @@
+import JDOM from '../JDOM.js'
 import JDOMTemplateParser from './JDOMTemplateParser.js'
 import TemplateJDOMAdapter from './TemplateJDOMAdapter.js'
 import { computed } from '../hooks.js'

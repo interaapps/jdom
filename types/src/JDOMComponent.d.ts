@@ -46,10 +46,6 @@ export default class JDOMComponent extends HTMLElement {
      * @return {string|undefined}
      */
     styles(): string | undefined;
-    /**
-     * @param {Event} event
-     */
-    dispatchEvent(event: Event): void;
     #private;
 }
 export type JDOMComponentOptions = {

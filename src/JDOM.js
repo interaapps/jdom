@@ -1,11 +1,10 @@
-import './html-typedefs.js'
 import Hook from './Hook.js'
 import JDOMComponent from './JDOMComponent.js'
 import {state} from './hooks.js'
 
 /**
  * @typedef Animation
- * @property {CSSPropertiesConfiguration} css
+ * @property {import('./html-typedefs').CSSPropertiesConfiguration} css
  * @property {Number} duration
  */
 
@@ -193,7 +192,7 @@ class JDOM {
 
     /**
      *
-     * @param {CSSPropertiesConfiguration} css
+     * @param {import('./html-typedefs').CSSPropertiesConfiguration} css
      * @return {JDOM}
      */
     css(css) {
@@ -205,7 +204,7 @@ class JDOM {
     }
 
     /**
-     * @param {CSSPropertiesConfiguration} css
+     * @param {import('./html-typedefs').CSSPropertiesConfiguration} css
      * @return {JDOM}
      */
     style(css) {
@@ -214,7 +213,7 @@ class JDOM {
 
     /**
      * @param {string} name
-     * @return {HTMLAttributes}
+     * @return {import('./html-typedefs').HTMLAttributes}
      */
     getAttr(name) {
         const el = this.firstNode()
@@ -237,7 +236,7 @@ class JDOM {
     }
 
     /**
-     * @param {HTMLAttributes} name
+     * @param {import('./html-typedefs').HTMLAttributes} name
      * @param {string|Hook} val
      * @return {JDOM}
      */
@@ -257,7 +256,7 @@ class JDOM {
     }
 
     /**
-     * @param {HTMLAttributes} name
+     * @param {import('./html-typedefs').HTMLAttributes} name
      * @return {JDOM}
      */
     removeAttr(name) {
@@ -267,7 +266,7 @@ class JDOM {
     }
 
     /**
-     * @param {HTMLAttributes} name
+     * @param {import('./html-typedefs').HTMLAttributes} name
      * @param {string|null|undefined} val
      * @return {JDOM|string|null}
      */
@@ -589,7 +588,7 @@ class JDOM {
 
     /**
      *
-     * @param {CSSPropertiesConfiguration} css CSS-Styles
+     * @param {import('./html-typedefs').CSSPropertiesConfiguration} css CSS-Styles
      * @param {Number} duration
      * @return {Promise<JDOM>}
      */
@@ -618,7 +617,7 @@ class JDOM {
     }
 
     /**
-     * @param {EventListenerType} listener
+     * @param {import('./html-typedefs').EventListenerType} listener
      * @param {function(Event)} callable
      * @return {JDOM}
      */
@@ -632,7 +631,7 @@ class JDOM {
     }
 
     /**
-     * @param {EventListenerType} listener
+     * @param {import('./html-typedefs').EventListenerType} listener
      * @param {function(Event)} callable
      * @return {JDOM}
      */
@@ -782,7 +781,7 @@ class JDOM {
     }
 
     /**
-     * @param {HTMLTag} tag
+     * @param {import('./html-typedefs').HTMLTag} tag
      * @param constructorArgs
      * @return {JDOM}
      */

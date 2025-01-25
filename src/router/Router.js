@@ -1,4 +1,5 @@
 import { $n, html, state } from '../../index.js'
+import Hook from '../Hook.js'
 
 /**
  * @typedef Route

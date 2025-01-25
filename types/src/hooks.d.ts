@@ -25,3 +25,4 @@ export function watch(hooks: Hook<any>[], callable: () => any): void;
  */
 export function bind(component: JDOMComponent, attr?: string): Hook<any>;
 import Hook from './Hook.js';
+import JDOMComponent from './JDOMComponent.js';

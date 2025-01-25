@@ -1,4 +1,5 @@
 import Hook from './Hook.js'
+import JDOMComponent from './JDOMComponent.js'
 
 /**
  * @template T

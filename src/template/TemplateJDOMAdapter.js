@@ -3,9 +3,10 @@ import JDOM from '../JDOM.js'
 
 export default class TemplateJDOMAdapter extends TemplateDOMAdapter {
     /**
-     * @return {JDOM}
+     * @param {boolean} inSVG
+     * @return {*}
      */
-    create() {
+    create(inSVG = false) {
         return new JDOM(super.create())
     }
 }

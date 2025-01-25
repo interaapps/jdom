@@ -568,6 +568,10 @@ export default class TemplateDOMAdapter {
         el.dispatchEvent(new CustomEvent(':attached'))
     }
 
+    /**
+     * @param {boolean} inSVG
+     * @return {any}
+     */
     create(inSVG = false) {
         this.inSVG = inSVG
         const elements = []

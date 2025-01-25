@@ -25,7 +25,7 @@ export default class Router {
      * @type Route[]
      */
     routes: Route[];
-    view: import("../Hook.js").default<any>;
+    view: Hook<any>;
     link: (to: any, text: any) => any;
     /**
      * @param to
@@ -55,3 +55,4 @@ export type CurrentRoute = {
     params: any;
     route: Route;
 };
+import Hook from '../Hook.js';

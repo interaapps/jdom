@@ -39,9 +39,9 @@ export default class Hook<T> {
     dispatchListener(oldVal: any): void;
     /**
      * @param {function(val: T)} listener
-     * @return {function(val: T)}
+     * @return {function(T)}
      */
-    addListener(listener: any): (arg0: val) => T;
+    addListener(listener: any): (arg0: T) => any;
     /**
      * @param {function(val: T)} listener
      */

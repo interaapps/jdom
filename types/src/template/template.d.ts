@@ -30,4 +30,5 @@ export function css(strings: any, ...values: any[]): string;
  * @return {Hook<string>}
  */
 export function comp(strings: any, ...values: any[]): Hook<string>;
+import JDOM from '../JDOM.js';
 import Hook from '../Hook.js';

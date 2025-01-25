@@ -17,6 +17,10 @@ export default class TemplateDOMAdapter {
     appendElement(to: any, el: any): void;
     afterElement(to: any, el: any): any;
     beforeElement(to: any, el: any): void;
-    create(inSVG?: boolean): any[];
+    /**
+     * @param {boolean} inSVG
+     * @return {any}
+     */
+    create(inSVG?: boolean): any;
     inSVG: boolean;
 }

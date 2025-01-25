@@ -1,12 +1,12 @@
 export default JDOM;
 export type Animation = {
-    css: CSSPropertiesConfiguration;
+    css: any;
     duration: number;
 };
 export type JDOMCustomHTMLElement = any;
 /**
  * @typedef Animation
- * @property {CSSPropertiesConfiguration} css
+ * @property {import('./html-typedefs').CSSPropertiesConfiguration} css
  * @property {Number} duration
  */
 /**
@@ -20,11 +20,11 @@ export type JDOMCustomHTMLElement = any;
 declare class JDOM {
     static compIndex: number;
     /**
-     * @param {HTMLTag} tag
+     * @param {import('./html-typedefs').HTMLTag} tag
      * @param constructorArgs
      * @return {JDOM}
      */
-    static "new"(tag?: HTMLTag, ...constructorArgs: any[]): JDOM;
+    static "new"(tag?: any, ...constructorArgs: any[]): JDOM;
     /**
      * A helper to create custom elements
      *
@@ -136,41 +136,41 @@ declare class JDOM {
     html(html?: string | Hook<any> | undefined): JDOM | string | null;
     /**
      *
-     * @param {CSSPropertiesConfiguration} css
+     * @param {import('./html-typedefs').CSSPropertiesConfiguration} css
      * @return {JDOM}
      */
-    css(css: CSSPropertiesConfiguration): JDOM;
+    css(css: any): JDOM;
     /**
-     * @param {CSSPropertiesConfiguration} css
+     * @param {import('./html-typedefs').CSSPropertiesConfiguration} css
      * @return {JDOM}
      */
-    style(css: CSSPropertiesConfiguration): JDOM;
+    style(css: any): JDOM;
     /**
      * @param {string} name
-     * @return {HTMLAttributes}
+     * @return {import('./html-typedefs').HTMLAttributes}
      */
-    getAttr(name: string): HTMLAttributes;
+    getAttr(name: string): any;
     /**
      * @return {Object}
      */
     getAttributes(): any;
     /**
-     * @param {HTMLAttributes} name
+     * @param {import('./html-typedefs').HTMLAttributes} name
      * @param {string|Hook} val
      * @return {JDOM}
      */
-    setAttr(name: HTMLAttributes, val: string | Hook<any>): JDOM;
+    setAttr(name: any, val: string | Hook<any>): JDOM;
     /**
-     * @param {HTMLAttributes} name
+     * @param {import('./html-typedefs').HTMLAttributes} name
      * @return {JDOM}
      */
-    removeAttr(name: HTMLAttributes): JDOM;
+    removeAttr(name: any): JDOM;
     /**
-     * @param {HTMLAttributes} name
+     * @param {import('./html-typedefs').HTMLAttributes} name
      * @param {string|null|undefined} val
      * @return {JDOM|string|null}
      */
-    attr(name: HTMLAttributes, val?: string | null | undefined): JDOM | string | null;
+    attr(name: any, val?: string | null | undefined): JDOM | string | null;
     /**
      * @return {string[]}
      */
@@ -287,28 +287,28 @@ declare class JDOM {
     showIf(hook: Hook<any>): JDOM;
     /**
      *
-     * @param {CSSPropertiesConfiguration} css CSS-Styles
+     * @param {import('./html-typedefs').CSSPropertiesConfiguration} css CSS-Styles
      * @param {Number} duration
      * @return {Promise<JDOM>}
      */
-    animate(css?: CSSPropertiesConfiguration, duration?: number): Promise<JDOM>;
+    animate(css?: any, duration?: number): Promise<JDOM>;
     /**
      * @param {Animation[]} animations
      * @return {Promise<JDOM>}
      */
     animator(animations: Animation[]): Promise<JDOM>;
     /**
-     * @param {EventListenerType} listener
+     * @param {import('./html-typedefs').EventListenerType} listener
      * @param {function(Event)} callable
      * @return {JDOM}
      */
-    on(listener: EventListenerType, callable: (arg0: Event) => any): JDOM;
+    on(listener: any, callable: (arg0: Event) => any): JDOM;
     /**
-     * @param {EventListenerType} listener
+     * @param {import('./html-typedefs').EventListenerType} listener
      * @param {function(Event)} callable
      * @return {JDOM}
      */
-    removeEvent(listener: EventListenerType, callable: (arg0: Event) => any): JDOM;
+    removeEvent(listener: any, callable: (arg0: Event) => any): JDOM;
     /**
      * @param {Object} events
      * @return {JDOM}
